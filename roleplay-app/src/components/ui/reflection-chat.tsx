@@ -15,25 +15,27 @@ interface ReflectionMessage {
 
 interface ReflectionChatProps {
   evaluationId: string
-  initialComment?: string
+  evaluationContext?: {
+    totalScore: number
+    summaryComment: string
+    criteriaScores: Array<{
+      label: string
+      score: number
+      maxScore: number
+      comment: string
+    }>
+  }
 }
 
-export function ReflectionChat({ evaluationId, initialComment }: ReflectionChatProps) {
+export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionChatProps) {
   const [messages, setMessages] = useState<ReflectionMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isInitialized, setIsInitialized] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
     fetchMessages()
   }, [evaluationId])
-
-  useEffect(() => {
-    if (!isInitialized && initialComment) {
-      handleInitialComment()
-    }
-  }, [initialComment, isInitialized])
 
   const fetchMessages = async () => {
     try {
@@ -50,48 +52,27 @@ export function ReflectionChat({ evaluationId, initialComment }: ReflectionChatP
     }
   }
 
-  const handleInitialComment = async () => {
-    if (!initialComment) return
-    
-    setIsLoading(true)
-    try {
-      const aiReply = await generateAIResponse(initialComment)
-      
-      const { data, error } = await supabase
-        .from('feedback_reflections')
-        .insert({
-          evaluation_id: evaluationId,
-          user_comment: initialComment,
-          ai_reply: aiReply
-        })
-        .select()
-        .single()
+  const callReflectionChatAPI = async (userComment: string): Promise<string> => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/reflection-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        evaluationId,
+        userComment,
+        evaluationContext
+      }),
+    })
 
-      if (error) throw error
-      
-      setMessages([data])
-      setIsInitialized(true)
-    } catch (error) {
-      console.error('Error saving initial comment:', error)
-    } finally {
-      setIsLoading(false)
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'API呼び出しに失敗しました')
     }
-  }
 
-  const generateAIResponse = async (userComment: string): Promise<string> => {
-    // 実際の実装では、Supabase Edge FunctionやOpenAI APIを呼び出す
-    // ここでは簡易的な応答を返す
-    const responses = [
-      "素晴らしい振り返りですね！その意識で次回も頑張ってください。",
-      "とても良い気づきです。継続的に改善していきましょう。",
-      "その視点は重要です。実践を通じてさらに磨いていってください。",
-      "具体的な改善点を意識されているのは素晴らしいです。",
-      "その姿勢で接客スキルが向上していきますよ。"
-    ]
-    
-    // 簡易的な応答生成（実際はGPT APIを使用）
-    const randomIndex = Math.floor(Math.random() * responses.length)
-    return responses[randomIndex]
+    const result = await response.json()
+    return result.aiReply
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,7 +81,7 @@ export function ReflectionChat({ evaluationId, initialComment }: ReflectionChatP
 
     setIsLoading(true)
     try {
-      const aiReply = await generateAIResponse(inputValue)
+      const aiReply = await callReflectionChatAPI(inputValue)
       
       const { data, error } = await supabase
         .from('feedback_reflections')
@@ -118,6 +99,23 @@ export function ReflectionChat({ evaluationId, initialComment }: ReflectionChatP
       setInputValue('')
     } catch (error) {
       console.error('Error sending message:', error)
+      // エラーが発生した場合のフォールバック応答
+      const fallbackResponse = "申し訳ございません。現在システムに問題が発生しています。しばらく時間をおいてから再度お試しください。"
+      
+      const { data, error: insertError } = await supabase
+        .from('feedback_reflections')
+        .insert({
+          evaluation_id: evaluationId,
+          user_comment: inputValue,
+          ai_reply: fallbackResponse
+        })
+        .select()
+        .single()
+
+      if (!insertError) {
+        setMessages(prev => [...prev, data])
+        setInputValue('')
+      }
     } finally {
       setIsLoading(false)
     }

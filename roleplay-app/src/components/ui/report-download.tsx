@@ -1,9 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from './button'
 import { Download } from 'lucide-react'
-import html2pdf from 'html2pdf.js'
 
 interface ReportDownloadProps {
   data: {
@@ -33,33 +32,54 @@ interface ReportDownloadProps {
 
 export function ReportDownload({ data }: ReportDownloadProps) {
   const reportRef = useRef<HTMLDivElement>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  // クライアントサイドでのみレンダリング
+  useState(() => {
+    setIsClient(true)
+  })
 
   const downloadReport = async () => {
-    if (!reportRef.current) return
-
-    const element = reportRef.current
-    const opt = {
-      margin: 1,
-      filename: `評価レポート_${data.recording.scenario.title}_${new Date().toISOString().split('T')[0]}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'portrait' 
-      }
-    }
+    if (!reportRef.current || !isClient) return
 
     try {
+      // 動的インポートでhtml2pdf.jsを読み込み
+      const html2pdf = (await import('html2pdf.js')).default
+      
+      const element = reportRef.current
+      const opt = {
+        margin: 1,
+        filename: `評価レポート_${data.recording.scenario.title}_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        }
+      }
+
       await html2pdf().set(opt).from(element).save()
     } catch (error) {
       console.error('PDF generation failed:', error)
       alert('PDFの生成に失敗しました。')
     }
+  }
+
+  if (!isClient) {
+    return (
+      <Button
+        disabled
+        className="bg-green-600 hover:bg-green-700 text-white opacity-50"
+      >
+        <Download className="mr-2 h-4 w-4" />
+        評価レポートをダウンロード
+      </Button>
+    )
   }
 
   return (

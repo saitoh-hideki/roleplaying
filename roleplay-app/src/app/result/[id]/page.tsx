@@ -56,6 +56,8 @@ export default function ResultPage() {
 
   const fetchResultData = async () => {
     try {
+      console.log('Fetching recording data for ID:', id)
+      
       // Fetch recording with scenario
       const { data: recording, error: recordingError } = await supabase
         .from('recordings')
@@ -68,18 +70,42 @@ export default function ResultPage() {
         .eq('id', id)
         .single()
 
-      if (recordingError) throw recordingError
+      if (recordingError) {
+        console.error('Recording fetch error:', recordingError)
+        console.error('Recording error details:', {
+          code: recordingError.code,
+          message: recordingError.message,
+          details: recordingError.details,
+          hint: recordingError.hint
+        })
+        throw recordingError
+      }
+      
+      console.log('Recording data fetched successfully:', recording)
 
       // Fetch evaluation
+      console.log('Fetching evaluation for recording ID:', id)
       const { data: evaluation, error: evalError } = await supabase
         .from('evaluations')
         .select('id, total_score, summary_comment')
         .eq('recording_id', id)
         .single()
 
-      if (evalError) throw evalError
+      if (evalError) {
+        console.error('Evaluation fetch error:', evalError)
+        console.error('Evaluation error details:', {
+          code: evalError.code,
+          message: evalError.message,
+          details: evalError.details,
+          hint: evalError.hint
+        })
+        throw evalError
+      }
+      
+      console.log('Evaluation data fetched successfully:', evaluation)
 
       // Fetch feedback notes with criteria
+      console.log('Fetching feedback notes for evaluation ID:', evaluation.id)
       const { data: feedbackNotes, error: feedbackError } = await supabase
         .from('feedback_notes')
         .select(`
@@ -90,7 +116,18 @@ export default function ResultPage() {
         `)
         .eq('evaluation_id', evaluation.id)
 
-      if (feedbackError) throw feedbackError
+      if (feedbackError) {
+        console.error('Feedback notes fetch error:', feedbackError)
+        console.error('Feedback error details:', {
+          code: feedbackError.code,
+          message: feedbackError.message,
+          details: feedbackError.details,
+          hint: feedbackError.hint
+        })
+        throw feedbackError
+      }
+      
+      console.log('Feedback notes fetched successfully:', feedbackNotes)
 
       setData({
         recording: {
@@ -109,6 +146,11 @@ export default function ResultPage() {
       })
     } catch (error) {
       console.error('Error fetching result data:', error)
+      // より詳細なエラー情報を表示
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+      }
     } finally {
       setLoading(false)
     }
@@ -145,7 +187,21 @@ export default function ResultPage() {
     return (
       <div className="min-h-screen bg-black">
         <div className="container mx-auto p-6 max-w-7xl">
-          <p className="text-center text-slate-400">データが見つかりませんでした</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-xl font-semibold text-slate-50 mb-2">データが見つかりませんでした</h2>
+            <p className="text-slate-400 mb-6">
+              指定されたID（{id}）の評価データが存在しません。<br />
+              ダッシュボードから正しい結果ページにアクセスしてください。
+            </p>
+            <Link href="/dashboard">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                ダッシュボードに戻る
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -255,7 +311,16 @@ export default function ResultPage() {
         <div className="mb-6">
           <ReflectionChat 
             evaluationId={data.evaluation.id}
-            initialComment="今回のロールプレイを振り返って、良かった点や改善したい点があれば教えてください。"
+            evaluationContext={{
+              totalScore: data.evaluation.total_score,
+              summaryComment: data.evaluation.summary_comment,
+              criteriaScores: data.feedbackNotes.map(note => ({
+                label: note.criterion.label,
+                score: note.score,
+                maxScore: note.criterion.max_score,
+                comment: note.comment
+              }))
+            }}
           />
         </div>
 

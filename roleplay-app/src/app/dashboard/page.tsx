@@ -59,6 +59,8 @@ export default function DashboardPage() {
         evaluation: r.evaluations?.[0] || null
       })) || []
 
+      console.log('Available recording IDs:', formattedRecordings.map(r => r.id))
+      console.log('Full recordings data:', formattedRecordings)
       setRecentRoleplays(formattedRecordings)
 
       // Fetch score history for chart
