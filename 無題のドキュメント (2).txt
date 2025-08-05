@@ -1,0 +1,244 @@
+﻿________________
+
+
+📄 接客ロープレイ SaaSアプリ 仕様書（Supabase + OpenAI / クラウド対応・認証なしプロトタイプ）
+________________
+
+
+🌟 1. プロジェクト概要
+接客スタッフ向けの社員研修用ロールプレイアプリ。
+* PCマイクで録音 → Whisper による音声文字起こし
+
+* OpenAI GPT-4o による社内ルールに基づく自動評価（コーチスタイル）
+
+* フィードバックはスコア + コメント形式で表示
+
+* 各企業ごとにマニュアル・評価項目・例題を柔軟に管理可能
+
+本仕様は認証なしプロトタイプ構成を想定。誰でもアクセス可能な前提で実装します。
+________________
+
+
+🔧 2. 技術構成（すべてクラウド対応）
+項目
+	技術
+	バックエンド
+	Supabase（クラウド） PostgreSQL / Storage / Edge Functions
+	フロントエンド
+	Next.js 15 + Tailwind CSS + shadcn/ui
+	AI連携
+	Whisper (音声→テキスト), GPT-4o (評価・コメント生成)
+	デプロイ先
+	Vercel または Railway
+	認証
+	なし（全ユーザー共通利用）
+	________________
+
+
+🔐 OpenAI APIキーの管理方法
+   * Supabase プロジェクトの「Secrets（シークレット）」に
+OPENAI_API_KEY という名前で OpenAIのAPIキーを登録しておく
+
+   * Edge Functions では Deno.env.get('OPENAI_API_KEY') を用いて安全に取得
+
+   * GPT-4o および Whisper の呼び出しは全て Supabase Edge Functions 側で処理
+
+________________
+
+
+☁️ Supabase接続情報（プロトタイプ用）
+      * Supabase URL:
+https://navqkresgxxutahyljyx.supabase.co
+
+      * anonキー:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hdnFrcmVzZ3h4dXRhaHlsanl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNjU0MjIsImV4cCI6MjA2OTk0MTQyMn0.FipT5gb0k239ujfPIDkp-O8YqeBOI6i0ge8ukz443ZA
+
+________________
+
+
+📂 3. Supabaseテーブル設計
+manuals：接客マニュアル
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	title
+	text
+	マニュアル名
+	category
+	text
+	分類（初回対応、クレームなど）
+	content
+	text
+	内容（テキストまたはPDF要約）
+	embedding
+	vector
+	AI用ベクトル（将来の検索用）
+	________________
+
+
+scenarios：ロールプレイ用の例題
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	title
+	text
+	シナリオタイトル
+	description
+	text
+	シナリオ内容の概要
+	related_manual_id
+	UUID
+	紐づくマニュアルのID
+	________________
+
+
+evaluation_criteria：評価基準
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	label
+	text
+	評価項目名（敬語・共感など）
+	description
+	text
+	項目の説明
+	max_score
+	int
+	最大スコア（例：5点）
+	________________
+
+
+recordings：録音記録
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	scenario_id
+	UUID
+	紐づくシナリオ
+	audio_url
+	text
+	Supabase Storage URL
+	transcript
+	text
+	Whisperによる文字起こし結果
+	created_at
+	timestamp
+	録音日時
+	________________
+
+
+evaluations：GPTによる総合評価
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	recording_id
+	UUID
+	対象録音
+	total_score
+	int
+	総合点（例：80点）
+	summary_comment
+	text
+	GPTによる総括コメント
+	________________
+
+
+feedback_notes：項目別フィードバック
+カラム名
+	型
+	説明
+	id
+	UUID
+	主キー
+	evaluation_id
+	UUID
+	紐づく評価
+	criterion_id
+	UUID
+	対象評価項目
+	score
+	int
+	各項目スコア
+	comment
+	text
+	GPTからの改善アドバイス
+	________________
+
+
+💻 4. UI画面構成（ノー認証）
+/dashboard
+         * 最近のロープレ（カード表示）
+
+         * スコア推移チャート
+
+         * 「ロープレを始める」ボタン
+
+/record
+            * シナリオ選択（ドロップダウン）
+
+            * 録音ボタン（波形・タイマー付き）
+
+            * 停止後 → Whisper → /whisper API
+
+            * 「評価する」→ /evaluate API
+
+/result/[id]
+               * 総合スコアゲージ
+
+               * 評価項目ごとのスコア・コメント
+
+               * GPTの要約コメント表示
+
+/history
+                  * 履歴一覧（日時・スコア・シナリオ）
+
+                  * 並び替え・フィルター機能付き
+
+/admin/manuals
+                     * マニュアル一覧／編集／新規追加（PDF or テキスト）
+
+                     * Embedding自動処理（ベクトル保存）
+
+/admin/criteria
+                        * 評価基準の管理（新規／編集／削除）
+
+                        * 表形式でわかりやすく表示
+
+/admin/scenarios
+                           * シナリオ管理画面（分類／マニュアル紐付けあり）
+
+________________
+
+
+✅ 5. MVP開発フロー（プロトタイプ）
+                              1. Supabaseにテーブル作成
+
+                              2. /recordで録音 → /whisper でテキスト化
+
+                              3. /evaluate 呼び出し → GPTで評価実施
+
+                              4. /resultで表示
+
+                              5. /historyで履歴閲覧
+
+________________
+
+
+必要であれば、SQL / Edge Functionコード / フロントコードを順に出力可能です。
+このドキュメントを見れば、誰でも仕様全体を把握して開発を始められる状態です。
+________________
