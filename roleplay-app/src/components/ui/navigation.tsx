@@ -38,7 +38,7 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="flex items-center space-x-2">
+    <nav className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-2">
       {navItems.map((item) => (
         <NavItem
           key={item.href}

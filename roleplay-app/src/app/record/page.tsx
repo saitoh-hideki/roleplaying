@@ -6,7 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Mic, MicOff, Settings, FileText, ChevronDown, Star } from 'lucide-react'
+import { WaveformVisualizer } from '@/components/ui/waveform-visualizer'
+import { RecentRecordings } from '@/components/ui/recent-recordings'
+import { ScenarioHistory } from '@/components/ui/scenario-history'
+import { Mic, MicOff, Settings, FileText, Star, Play, Clock, TrendingUp } from 'lucide-react'
 
 interface Scenario {
   id: string
@@ -325,10 +328,10 @@ export default function RecordPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* ページタイトルと設定 */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-slate-50">🎙️ ロールプレイ録音</h1>
+          <h1 className="text-3xl font-bold text-slate-50">🎙️ 接客ロープレ録音</h1>
           <div className="flex items-center space-x-3">
             <Settings className="w-4 h-4 text-slate-400" />
             <span className="text-sm font-medium text-slate-400">リアルタイム文字起こし</span>
@@ -339,11 +342,13 @@ export default function RecordPage() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* メインコンテンツエリア */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* 左側: 録音コントロール */}
           <div className="space-y-6">
-            {/* シナリオ選択カード - ブラック系SaaSデザイン */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg w-full">
+            {/* シナリオ選択カード */}
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700">
               <div className="flex items-center space-x-2 mb-4">
                 <FileText className="w-5 h-5 text-indigo-400" />
                 <h2 className="text-lg font-semibold">📋 シナリオ選択</h2>
@@ -363,8 +368,8 @@ export default function RecordPage() {
               </Select>
             </div>
 
-            {/* 録音コントロールカード - ブラック系SaaSデザイン */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg w-full flex flex-col items-center space-y-6">
+            {/* 録音コントロールカード */}
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700 flex flex-col items-center space-y-6">
               
               {/* タイトル */}
               <div className="text-center">
@@ -398,6 +403,9 @@ export default function RecordPage() {
                   </button>
                 )}
               </div>
+
+              {/* 波形表示 */}
+              <WaveformVisualizer isRecording={isRecording} className="w-full" />
 
               {/* ステータステキスト */}
               <div className="text-center">
@@ -450,27 +458,12 @@ export default function RecordPage() {
                   </button>
                 )}
               </div>
-
-              {/* 非リアルタイム時の文字起こし結果表示 */}
-              {transcript && !realtimeEnabled && (
-                <div className="w-full">
-                  <div className="bg-slate-700 border-2 border-slate-600 rounded-xl p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <FileText className="w-4 h-4 text-indigo-400" />
-                      <span className="text-sm font-semibold text-slate-200">文字起こし完了</span>
-                    </div>
-                    <p className="text-sm text-slate-300">
-                      右側のエリアに文字起こし結果が表示されています
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* 右側: リアルタイム文字起こし - ブラック系SaaSデザイン */}
+          {/* 右側: リアルタイム文字起こし */}
           <div>
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg w-full h-full">
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700 h-full">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-indigo-400" />
@@ -521,7 +514,6 @@ export default function RecordPage() {
                             <span className="text-sm font-medium text-slate-200">
                               文字起こし履歴 ({transcriptionHistory.length}回)
                             </span>
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
                           </summary>
                           <div className="p-3 pt-0 space-y-2 max-h-48 overflow-y-auto">
                             {transcriptionHistory.map((text, index) => (
@@ -599,6 +591,12 @@ export default function RecordPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 下部: 最新録音とシナリオ履歴 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RecentRecordings />
+          <ScenarioHistory scenarioId={selectedScenario} />
         </div>
       </div>
     </div>
