@@ -106,12 +106,20 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-slate-50 tracking-tight">接客ロープレ ダッシュボード</h1>
             <p className="text-slate-400 mt-2 text-base">あなたの接客スキル向上をサポートします</p>
           </div>
-          <Link href="/record">
-            <Button className="bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200">
-              <Play className="w-4 h-4" />
-              <span>ロープレを始める</span>
-            </Button>
-          </Link>
+          <div className="flex space-x-3">
+            <Link href="/scenes">
+              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-slate-50 flex items-center space-x-2">
+                <Target className="w-4 h-4" />
+                <span>シーン別練習</span>
+              </Button>
+            </Link>
+            <Link href="/record">
+              <Button className="bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200">
+                <Play className="w-4 h-4" />
+                <span>ロープレを始める</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 統計カード */}

@@ -15,6 +15,17 @@ CREATE TABLE manuals (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
+-- Create scenes table (シーンカテゴリーダッシュボード用)
+CREATE TABLE scenes (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    edge_function TEXT NOT NULL,
+    icon TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
 -- Create scenarios table (ロールプレイ用の例題)
 CREATE TABLE scenarios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -39,6 +50,7 @@ CREATE TABLE evaluation_criteria (
 CREATE TABLE recordings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     scenario_id UUID REFERENCES scenarios(id) ON DELETE CASCADE,
+    situation_id TEXT REFERENCES scenes(id) ON DELETE SET NULL,
     audio_url TEXT NOT NULL,
     transcript TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
@@ -65,6 +77,7 @@ CREATE TABLE feedback_notes (
 
 -- Create indexes for better performance
 CREATE INDEX idx_recordings_scenario_id ON recordings(scenario_id);
+CREATE INDEX idx_recordings_situation_id ON recordings(situation_id);
 CREATE INDEX idx_evaluations_recording_id ON evaluations(recording_id);
 CREATE INDEX idx_feedback_notes_evaluation_id ON feedback_notes(evaluation_id);
 CREATE INDEX idx_feedback_notes_criterion_id ON feedback_notes(criterion_id);
@@ -80,6 +93,9 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER update_manuals_updated_at BEFORE UPDATE ON manuals
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_scenes_updated_at BEFORE UPDATE ON scenes
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_scenarios_updated_at BEFORE UPDATE ON scenarios
@@ -98,6 +114,7 @@ INSERT INTO evaluation_criteria (label, description, max_score) VALUES
 
 -- Enable RLS (Row Level Security) for all tables
 ALTER TABLE manuals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scenes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE scenarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evaluation_criteria ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recordings ENABLE ROW LEVEL SECURITY;
@@ -106,6 +123,7 @@ ALTER TABLE feedback_notes ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access (prototype only)
 CREATE POLICY "Public Access" ON manuals FOR ALL USING (true);
+CREATE POLICY "Public Access" ON scenes FOR ALL USING (true);
 CREATE POLICY "Public Access" ON scenarios FOR ALL USING (true);
 CREATE POLICY "Public Access" ON evaluation_criteria FOR ALL USING (true);
 CREATE POLICY "Public Access" ON recordings FOR ALL USING (true);

@@ -17,6 +17,16 @@ export interface Scenario {
   updated_at: string
 }
 
+export interface Scene {
+  id: string
+  title: string
+  description: string
+  edge_function: string
+  icon?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface EvaluationCriterion {
   id: string
   label: string
@@ -29,6 +39,7 @@ export interface EvaluationCriterion {
 export interface Recording {
   id: string
   scenario_id?: string
+  situation_id?: string
   audio_url: string
   transcript?: string
   created_at: string
@@ -63,6 +74,11 @@ export type Database = {
         Row: Scenario
         Insert: Omit<Scenario, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Scenario, 'id' | 'created_at' | 'updated_at'>>
+      }
+      scenes: {
+        Row: Scene
+        Insert: Omit<Scene, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Scene, 'id' | 'created_at' | 'updated_at'>>
       }
       evaluation_criteria: {
         Row: EvaluationCriterion

@@ -52,19 +52,22 @@ INSERT INTO manuals (title, category, content) VALUES
 - 間違いがないか、お客様に確認していただきます');
 
 -- Insert sample scenarios
-INSERT INTO scenarios (title, description, related_manual_id) VALUES
-('初めてのお客様への商品説明', 'あなたは家電量販店の店員です。初めて来店されたお客様が、新しいノートパソコンを探しています。お客様は「在宅ワーク用のパソコンが欲しい」とおっしゃっています。適切に接客してください。', 
-(SELECT id FROM manuals WHERE title = '初回接客マニュアル' LIMIT 1)),
+INSERT INTO scenarios (id, title, description) VALUES
+    ('550e8400-e29b-41d4-a716-446655440001', '初回接客', '初めてのお客様への接客練習'),
+    ('550e8400-e29b-41d4-a716-446655440002', 'クレーム対応', 'お客様からのクレーム対応練習'),
+    ('550e8400-e29b-41d4-a716-446655440003', '商品説明', '商品の特徴やメリットを説明する練習');
 
-('商品の不具合に関するクレーム', 'あなたはスマートフォンショップの店員です。お客様が「昨日買ったスマートフォンの画面が急につかなくなった」と怒っています。適切にクレーム対応をしてください。',
-(SELECT id FROM manuals WHERE title = 'クレーム対応マニュアル' LIMIT 1)),
-
-('電話での在庫確認', 'あなたは書店の店員です。お客様から電話で「〇〇という本の在庫はありますか？」という問い合わせがありました。適切に電話対応をしてください。',
-(SELECT id FROM manuals WHERE title = '電話対応マニュアル' LIMIT 1)),
-
-('価格交渉への対応', 'あなたは家具店の店員です。お客様が気に入ったソファーについて「もう少し安くならないか」と価格交渉をしてきました。丁寧に対応してください。', NULL),
-
-('商品の使い方説明', 'あなたは化粧品店の店員です。お客様が新しいスキンケア商品について「使い方がよく分からない」とおっしゃっています。分かりやすく説明してください。', NULL);
+-- Insert scenes data for シーンカテゴリーダッシュボード
+INSERT INTO scenes (id, title, description, edge_function, icon) VALUES
+    ('scene_001', 'パソコンが調子悪くて初めてお客様が来店', '非会員の初回来店、困りごとベースの接客練習', 'evaluate_scene_001', '💻'),
+    ('scene_002', 'お約束をしていた会員様が来店', '事前予約ありのスムーズな接客練習', 'evaluate_scene_002', '📅'),
+    ('scene_003', '久しぶりに来店された予約済み会員様', '関係性があるが時間が空いている接客練習', 'evaluate_scene_003', '👋'),
+    ('scene_004', '初めて会員様のお宅へ訪問', '訪問対応の第一印象が重要な接客練習', 'evaluate_scene_004', '🏠'),
+    ('scene_005', 'イベントに会員様が友人と一緒に来店', '会員＋非会員にバランスの良い対応練習', 'evaluate_scene_005', '🎉'),
+    ('scene_006', 'DMを送った会員様に電話をする', 'アウトバウンド型の声かけ練習', 'evaluate_scene_006', '📞'),
+    ('scene_007', '会員を辞めたいと来店', 'ネガティブな目的で来店されたケースの対応練習', 'evaluate_scene_007', '😔'),
+    ('scene_008', 'SmartLife AO校に興味を示す会員様', '前向きだがまだ不安がある接客練習', 'evaluate_scene_008', '🎓'),
+    ('scene_009', '紹介で来店したお客様', '期待値の高い非会員への接客練習', 'evaluate_scene_009', '🤝');
 
 -- Insert sample recordings
 INSERT INTO recordings (scenario_id, audio_url, transcript) VALUES

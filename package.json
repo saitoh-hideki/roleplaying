@@ -1,0 +1,12 @@
+{
+  "name": "roleplaying",
+  "version": "1.0.0",
+  "description": "Roleplaying application",
+  "scripts": {
+    "dev": "cd roleplay-app && npm run dev",
+    "build": "cd roleplay-app && npm run build",
+    "start": "cd roleplay-app && npm run start",
+    "lint": "cd roleplay-app && npm run lint"
+  },
+  "private": true
+} 

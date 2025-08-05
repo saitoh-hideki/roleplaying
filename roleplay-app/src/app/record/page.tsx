@@ -1,25 +1,26 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { WaveformVisualizer } from '@/components/ui/waveform-visualizer'
 import { RecentRecordings } from '@/components/ui/recent-recordings'
-import { ScenarioHistory } from '@/components/ui/scenario-history'
 import { Mic, MicOff, Settings, FileText, Star, Play, Clock, TrendingUp } from 'lucide-react'
 
-interface Scenario {
+interface Scene {
   id: string
   title: string
   description: string
+  edge_function: string
+  icon: string
 }
 
 export default function RecordPage() {
-  const [scenarios, setScenarios] = useState<Scenario[]>([])
-  const [selectedScenario, setSelectedScenario] = useState<string>('')
+  const [scenes, setScenes] = useState<Scene[]>([])
+  const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
@@ -35,11 +36,22 @@ export default function RecordPage() {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const transcriptionIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
-    fetchScenarios()
+    fetchScenes()
   }, [])
+
+  // シーンが読み込まれた後にURLパラメータからシーンIDを取得して選択
+  useEffect(() => {
+    if (scenes.length > 0) {
+      const situationId = searchParams.get('situation_id')
+      if (situationId) {
+        handleSceneSelection(situationId)
+      }
+    }
+  }, [scenes, searchParams])
 
   const performRealtimeTranscription = useCallback(async () => {
     if (!isRecording || !realtimeEnabled) {
@@ -133,17 +145,24 @@ export default function RecordPage() {
     }
   }, [isRecording, realtimeEnabled, performRealtimeTranscription])
 
-  const fetchScenarios = async () => {
+  const fetchScenes = async () => {
     try {
       const { data, error } = await supabase
-        .from('scenarios')
+        .from('scenes')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
 
       if (error) throw error
-      setScenarios(data || [])
+      setScenes(data || [])
     } catch (error) {
-      console.error('Error fetching scenarios:', error)
+      console.error('Error fetching scenes:', error)
+    }
+  }
+
+  const handleSceneSelection = (sceneId: string) => {
+    const scene = scenes.find(s => s.id === sceneId)
+    if (scene) {
+      setSelectedScene(scene)
     }
   }
 
@@ -238,7 +257,7 @@ export default function RecordPage() {
   }
 
   const processRecording = async () => {
-    if (!audioBlob || !selectedScenario) return
+    if (!audioBlob || !selectedScene) return
 
     setIsProcessing(true)
     
@@ -259,7 +278,7 @@ export default function RecordPage() {
       const { data: recording, error: recordingError } = await supabase
         .from('recordings')
         .insert({
-          scenario_id: selectedScenario,
+          situation_id: selectedScene.id,
           audio_url: publicUrl
         })
         .select()
@@ -289,7 +308,9 @@ export default function RecordPage() {
         .update({ transcript })
         .eq('id', recording.id)
 
-      const evaluateResponse = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/evaluate`, {
+      // シーン別の評価関数を呼び出す
+      const evaluateFunction = selectedScene.edge_function
+      const evaluateResponse = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${evaluateFunction}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,7 +319,7 @@ export default function RecordPage() {
         body: JSON.stringify({
           recordingId: recording.id,
           transcript,
-          scenarioId: selectedScenario
+          situationId: selectedScene.id
         })
       })
 
@@ -347,21 +368,39 @@ export default function RecordPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* 左側: 録音コントロール */}
           <div className="space-y-6">
-            {/* シナリオ選択カード */}
+            {/* シーン選択カード */}
             <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700">
               <div className="flex items-center space-x-2 mb-4">
-                <FileText className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-lg font-semibold">📋 シナリオ選択</h2>
+                <Play className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-lg font-semibold">🎭 シーン選択</h2>
               </div>
-              <p className="text-sm text-slate-400 mb-4">練習したいシナリオを選択してください</p>
-              <Select value={selectedScenario} onValueChange={setSelectedScenario}>
+              
+              {/* 選択されたシーンの表示 */}
+              {selectedScene && (
+                <div className="mb-4 p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-2xl">{selectedScene.icon}</span>
+                    <h3 className="font-semibold text-indigo-400">{selectedScene.title}</h3>
+                  </div>
+                  <p className="text-sm text-slate-300">{selectedScene.description}</p>
+                </div>
+              )}
+              
+              <p className="text-sm text-slate-400 mb-4">
+                {selectedScene ? 'シーンが選択されています。録音を開始してください。' : '練習したいシーンを選択してください'}
+              </p>
+              
+              <Select value={selectedScene?.id || ''} onValueChange={handleSceneSelection}>
                 <SelectTrigger className="w-full border-2 border-slate-600 hover:border-indigo-400 focus:border-indigo-500 rounded-lg bg-slate-700 text-slate-50">
-                  <SelectValue placeholder="シナリオを選択してください" />
+                  <SelectValue placeholder="シーンを選択してください" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600">
-                  {scenarios.map(scenario => (
-                    <SelectItem key={scenario.id} value={scenario.id} className="text-slate-50 hover:bg-slate-600">
-                      {scenario.title}
+                  {scenes.map(scene => (
+                    <SelectItem key={scene.id} value={scene.id} className="text-slate-50 hover:bg-slate-600">
+                      <div className="flex items-center space-x-2">
+                        <span>{scene.icon}</span>
+                        <span>{scene.title}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -375,7 +414,7 @@ export default function RecordPage() {
               <div className="text-center">
                 <h2 className="text-lg font-semibold mb-2">🎙️ 録音コントロール</h2>
                 <p className="text-sm text-slate-400">
-                  {selectedScenario ? '準備ができたら録音を開始してください' : 'まずシナリオを選択してください'}
+                  {selectedScene ? '準備ができたら録音を開始してください' : 'まずシーンを選択してください'}
                 </p>
               </div>
               
@@ -389,7 +428,7 @@ export default function RecordPage() {
                 {!isRecording ? (
                   <button
                     onClick={startRecording}
-                    disabled={!selectedScenario || isProcessing}
+                    disabled={!selectedScene || isProcessing}
                     className="flex items-center justify-center w-20 h-20 rounded-full border-4 border-indigo-500 hover:bg-indigo-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Mic className="w-8 h-8 text-indigo-400" />
@@ -441,7 +480,7 @@ export default function RecordPage() {
                 {audioBlob && !isRecording && (
                   <button
                     onClick={processRecording}
-                    disabled={isProcessing || !selectedScenario}
+                    disabled={isProcessing || !selectedScene}
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
@@ -593,10 +632,9 @@ export default function RecordPage() {
           </div>
         </div>
 
-        {/* 下部: 最新録音とシナリオ履歴 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 下部: 最新録音 */}
+        <div className="grid grid-cols-1 gap-6">
           <RecentRecordings />
-          <ScenarioHistory scenarioId={selectedScenario} />
         </div>
       </div>
     </div>

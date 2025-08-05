@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Mic, History, Settings } from "lucide-react";
+import { LayoutDashboard, Mic, History, Settings, Theater } from "lucide-react";
 
 // ナビゲーションアイテムコンポーネント
 function NavItem({ href, label, icon: Icon, isActive }: { 
@@ -32,6 +32,7 @@ export function Navigation() {
   
   const navItems = [
     { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+    { href: "/scenes", label: "シーン", icon: Theater },
     { href: "/record", label: "録音", icon: Mic },
     { href: "/history", label: "履歴", icon: History },
     { href: "/admin/scenarios", label: "管理", icon: Settings },
