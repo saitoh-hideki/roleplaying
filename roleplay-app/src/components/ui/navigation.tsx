@@ -16,7 +16,7 @@ function NavItem({ href, label, icon: Icon, isActive }: {
       href={href}
       className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
         isActive 
-          ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20' 
+          ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-sm' 
           : 'text-slate-300 hover:text-slate-100 hover:bg-slate-700/50'
       }`}
     >
@@ -39,7 +39,7 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-2">
+    <nav className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-xl p-2 shadow-lg">
       {navItems.map((item) => (
         <NavItem
           key={item.href}

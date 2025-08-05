@@ -100,24 +100,24 @@ export default function HistoryPage() {
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400'
-    if (score >= 60) return 'text-yellow-400'
+    if (score >= 60) return 'text-amber-400'
     return 'text-red-400'
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#0f172a]">
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-slate-50">履歴</h1>
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-            <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-slate-50">
+            <SelectTrigger className="w-48 bg-slate-800 border-slate-600 text-slate-50">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-700 border-slate-600">
-              <SelectItem value="date_desc" className="text-slate-50 hover:bg-slate-600">日付（新しい順）</SelectItem>
-              <SelectItem value="date_asc" className="text-slate-50 hover:bg-slate-600">日付（古い順）</SelectItem>
-              <SelectItem value="score_desc" className="text-slate-50 hover:bg-slate-600">スコア（高い順）</SelectItem>
-              <SelectItem value="score_asc" className="text-slate-50 hover:bg-slate-600">スコア（低い順）</SelectItem>
+            <SelectContent className="bg-slate-800 border-slate-600">
+              <SelectItem value="date_desc" className="text-slate-50 hover:bg-slate-700">日付（新しい順）</SelectItem>
+              <SelectItem value="date_asc" className="text-slate-50 hover:bg-slate-700">日付（古い順）</SelectItem>
+              <SelectItem value="score_desc" className="text-slate-50 hover:bg-slate-700">スコア（高い順）</SelectItem>
+              <SelectItem value="score_asc" className="text-slate-50 hover:bg-slate-700">スコア（低い順）</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -131,7 +131,7 @@ export default function HistoryPage() {
           <>
             <div className="space-y-4">
               {history.map((item) => (
-                <Card key={item.id} className="bg-slate-800 border-slate-700 text-slate-50 hover:shadow-xl transition-all duration-200">
+                <Card key={item.id} className="bg-slate-800 border-0 shadow-lg text-slate-50 hover:shadow-xl transition-all duration-200">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
@@ -189,7 +189,7 @@ export default function HistoryPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`w-10 ${
                         page === currentPage 
-                          ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
+                          ? "bg-indigo-600 hover:bg-indigo-500 text-white" 
                           : "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-slate-50"
                       }`}
                     >
@@ -211,11 +211,11 @@ export default function HistoryPage() {
             )}
           </>
         ) : (
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
+          <Card className="bg-slate-800 border-0 shadow-lg text-slate-50">
             <CardContent className="text-center py-12">
               <p className="text-slate-400 mb-4">まだ履歴がありません</p>
               <Link href="/record">
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">録音を始める</Button>
+                <Button className="bg-indigo-600 hover:bg-indigo-500 text-white">録音を始める</Button>
               </Link>
             </CardContent>
           </Card>

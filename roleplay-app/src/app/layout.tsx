@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0f172a]`}
       >
         <header className="h-16 bg-slate-900/95 backdrop-blur-sm text-white shadow-lg flex items-center justify-between px-6 z-50 border-b border-slate-700">
           {/* ロゴ / タイトル */}

@@ -62,6 +62,24 @@ export interface FeedbackNote {
   created_at: string
 }
 
+export interface ReflectionNote {
+  id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PracticePlan {
+  id: string
+  user_id: string
+  date: string
+  scene_id: string
+  note?: string
+  created_at: string
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -99,6 +117,16 @@ export type Database = {
         Row: FeedbackNote
         Insert: Omit<FeedbackNote, 'id' | 'created_at'>
         Update: Partial<Omit<FeedbackNote, 'id' | 'created_at'>>
+      }
+      reflection_notes: {
+        Row: ReflectionNote
+        Insert: Omit<ReflectionNote, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ReflectionNote, 'id' | 'created_at' | 'updated_at'>>
+      }
+      practice_plans: {
+        Row: PracticePlan
+        Insert: Omit<PracticePlan, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<PracticePlan, 'id' | 'created_at' | 'updated_at'>>
       }
     }
   }

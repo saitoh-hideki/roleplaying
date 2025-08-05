@@ -374,7 +374,7 @@ export default function RecordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#0f172a]">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* ページタイトルと設定 */}
         <div className="flex items-center justify-between mb-8">
@@ -395,7 +395,7 @@ export default function RecordPage() {
           {/* 左側: 録音コントロール */}
           <div className="space-y-6">
             {/* シーン選択カード */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700">
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0">
               <div className="flex items-center space-x-2 mb-4">
                 <Play className="w-5 h-5 text-indigo-400" />
                 <h2 className="text-lg font-semibold">🎭 シーン選択</h2>
@@ -420,9 +420,9 @@ export default function RecordPage() {
                 <SelectTrigger className="w-full border-2 border-slate-600 hover:border-indigo-400 focus:border-indigo-500 rounded-lg bg-slate-700 text-slate-50">
                   <SelectValue placeholder="シーンを選択してください" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectContent className="bg-slate-800 border-slate-600">
                   {scenes.map(scene => (
-                    <SelectItem key={scene.id} value={scene.id} className="text-slate-50 hover:bg-slate-600">
+                    <SelectItem key={scene.id} value={scene.id} className="text-slate-50 hover:bg-slate-700">
                       <div className="flex items-center space-x-2">
                         <span>{scene.icon}</span>
                         <span>{scene.title}</span>
@@ -434,7 +434,7 @@ export default function RecordPage() {
             </div>
 
             {/* 録音コントロールカード */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700 flex flex-col items-center space-y-6">
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0 flex flex-col items-center space-y-6">
               
               {/* タイトル */}
               <div className="text-center">
@@ -509,7 +509,7 @@ export default function RecordPage() {
                   <button
                     onClick={processRecording}
                     disabled={isProcessing || !selectedScene}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isProcessing ? (
                       <div className="flex items-center justify-center">
@@ -530,7 +530,7 @@ export default function RecordPage() {
 
           {/* 右側: リアルタイム文字起こし */}
           <div>
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border border-slate-700 h-full">
+            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0 h-full">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-indigo-400" />

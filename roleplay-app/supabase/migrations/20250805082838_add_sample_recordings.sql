@@ -1,29 +1,29 @@
--- Insert sample recordings
+-- Insert sample recordings using scenes table
 INSERT INTO recordings (scenario_id, audio_url, transcript) VALUES
-((SELECT id FROM scenarios WHERE title = '初めてのお客様への商品説明' LIMIT 1), 
+('scene_001', 
  'https://example.com/audio1.mp3', 
- 'いらっしゃいませ。本日はどのようなものをお探しでしょうか？在宅ワーク用のパソコンですね。お客様の用途に合わせて、いくつかおすすめの商品をご紹介させていただきます。'),
+ 'いらっしゃいませ。パソコンの調子が悪いとのことですね。お困りの状況を詳しくお聞かせください。どのような症状が出ていますか？'),
 
-((SELECT id FROM scenarios WHERE title = '商品の不具合に関するクレーム' LIMIT 1), 
+('scene_003', 
  'https://example.com/audio2.mp3', 
- 'ご不便をおかけして申し訳ございません。昨日ご購入いただいたスマートフォンの画面が急につかなくなったとのことですね。まずは詳しい状況をお聞かせください。'),
+ '田中様、お久しぶりです。お元気でしたか？今日はどのようなご用件でしょうか？'),
 
-((SELECT id FROM scenarios WHERE title = '電話での在庫確認' LIMIT 1), 
+('scene_006', 
  'https://example.com/audio3.mp3', 
- 'お電話ありがとうございます。〇〇書店の田中でございます。〇〇という本の在庫確認ですね。少々お待ちください。'),
+ 'お電話ありがとうございます。先日お送りしたDMについて、ご質問やご相談がございましたらお聞かせください。'),
 
-((SELECT id FROM scenarios WHERE title = '価格交渉への対応' LIMIT 1), 
+('scene_007', 
  'https://example.com/audio4.mp3', 
- 'このソファーについて価格のご相談ですね。お客様にご満足いただけるよう、できる限りの対応をさせていただきます。'),
+ '会員を辞めたいとのことですね。まずはどのようなお考えでいらっしゃるか、お聞かせいただけますでしょうか？'),
 
-((SELECT id FROM scenarios WHERE title = '商品の使い方説明' LIMIT 1), 
+('scene_009', 
  'https://example.com/audio5.mp3', 
- 'このスキンケア商品の使い方についてご説明いたします。まずはクレンジングから始めて、その後化粧水、美容液の順番でお使いください。');
+ '山田様からご紹介いただいたとのことですね。ありがとうございます。どのようなサービスにご興味がございますか？');
 
 -- Insert sample evaluations
 INSERT INTO evaluations (recording_id, total_score, summary_comment) VALUES
-((SELECT id FROM recordings LIMIT 1 OFFSET 0), 4, '全体的に良い接客でしたが、もう少し具体的な商品の特徴を説明するとより良くなります。'),
-((SELECT id FROM recordings LIMIT 1 OFFSET 1), 5, 'クレーム対応が非常に適切でした。お客様の気持ちに寄り添った対応ができています。'),
-((SELECT id FROM recordings LIMIT 1 OFFSET 2), 3, '基本的な電話対応はできていますが、もう少し丁寧な言葉遣いを心がけましょう。'),
-((SELECT id FROM recordings LIMIT 1 OFFSET 3), 4, '価格交渉への対応が適切でした。お客様の要望を理解し、柔軟な対応ができています。'),
-((SELECT id FROM recordings LIMIT 1 OFFSET 4), 5, '商品の使い方説明が非常に分かりやすく、お客様のニーズに合った説明ができています。');
+((SELECT id FROM recordings WHERE scenario_id = 'scene_001' LIMIT 1), 4, '初回接客として適切な対応でした。お客様の困りごとを丁寧に聞き取ることができています。'),
+((SELECT id FROM recordings WHERE scenario_id = 'scene_003' LIMIT 1), 5, '久しぶりの会員様への対応が非常に自然で、関係性を活かした接客ができています。'),
+((SELECT id FROM recordings WHERE scenario_id = 'scene_006' LIMIT 1), 3, '電話対応の基本はできていますが、もう少し丁寧な言葉遣いを心がけましょう。'),
+((SELECT id FROM recordings WHERE scenario_id = 'scene_007' LIMIT 1), 4, 'ネガティブな状況でも冷静に対応できています。お客様の気持ちに寄り添った対応ができています。'),
+((SELECT id FROM recordings WHERE scenario_id = 'scene_009' LIMIT 1), 5, '紹介客への対応が非常に適切でした。期待値の高いお客様への接客ができています。');

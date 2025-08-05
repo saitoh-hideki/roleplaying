@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Play, Users, Target, TrendingUp } from 'lucide-react'
+import { Play, Users, Target, TrendingUp, Star, Clock, MessageSquare, ShoppingBag, UserCheck } from 'lucide-react'
 
 interface Scene {
   id: string
@@ -45,9 +45,54 @@ export default function ScenesPage() {
     router.push(`/record?situation_id=${sceneId}`)
   }
 
+  // シーンをカテゴリ別に分類
+  const categorizeScenes = () => {
+    const categories = {
+      basic: scenes.filter(scene => scene.id.includes('001') || scene.id.includes('002') || scene.id.includes('003')),
+      advanced: scenes.filter(scene => scene.id.includes('004') || scene.id.includes('005') || scene.id.includes('006')),
+      special: scenes.filter(scene => scene.id.includes('007') || scene.id.includes('008') || scene.id.includes('009'))
+    }
+    return categories
+  }
+
+  // カラーバリエーション戦略: 列ごとに異なるアクセント色
+  const getCardAccentColor = (index: number) => {
+    const column = index % 3
+    switch (column) {
+      case 0: return 'indigo' // 1列目: Indigo基調（接客の基本対応）
+      case 1: return 'cyan'   // 2列目: Cyanアクセント（柔らかい場面）
+      case 2: return 'amber'  // 3列目: Amber系（ネガティブ/重要なシーン）
+      default: return 'indigo'
+    }
+  }
+
+  const getAccentClasses = (accentColor: string) => {
+    const classes = {
+      indigo: {
+        iconBg: 'bg-indigo-500/20',
+        iconColor: 'text-indigo-400',
+        buttonBg: 'bg-indigo-600 hover:bg-indigo-500',
+        hoverText: 'group-hover:text-indigo-400'
+      },
+      cyan: {
+        iconBg: 'bg-cyan-500/20',
+        iconColor: 'text-cyan-400',
+        buttonBg: 'bg-cyan-600 hover:bg-cyan-500',
+        hoverText: 'group-hover:text-cyan-400'
+      },
+      amber: {
+        iconBg: 'bg-amber-500/20',
+        iconColor: 'text-amber-400',
+        buttonBg: 'bg-amber-600 hover:bg-amber-500',
+        hoverText: 'group-hover:text-amber-400'
+      }
+    }
+    return classes[accentColor as keyof typeof classes] || classes.indigo
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-400">シーンを読み込み中...</p>
@@ -56,97 +101,216 @@ export default function ScenesPage() {
     )
   }
 
+  const categories = categorizeScenes()
+
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* ページヘッダー */}
+    <div className="min-h-screen bg-[#0f172a]">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* ページタイトル */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-50 mb-2">🎭 シーンカテゴリーダッシュボード</h1>
-          <p className="text-slate-400">接客の場面別にロールプレイを練習できます。各シーンに応じた評価で、より実践的なトレーニングが可能です。</p>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            🎯 Training Scenes Dashboard
+          </h1>
+          <p className="text-sm text-slate-400 mb-8">
+            Practice realistic customer interaction scenarios and receive feedback tailored to each situation.
+          </p>
         </div>
 
         {/* 統計情報 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <Card className="bg-slate-800 border-0 shadow-lg p-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
                 <Users className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">利用可能シーン</p>
+                <p className="text-sm text-slate-400">Available Scenes</p>
                 <p className="text-2xl font-bold text-slate-50">{scenes.length}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="bg-slate-800 border-slate-700 p-6">
+          <Card className="bg-slate-800 border-0 shadow-lg p-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-green-400" />
+              <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">場面別評価</p>
-                <p className="text-2xl font-bold text-slate-50">9種類</p>
+                <p className="text-sm text-slate-400">Scene Categories</p>
+                <p className="text-2xl font-bold text-slate-50">3 Types</p>
               </div>
             </div>
           </Card>
           
-          <Card className="bg-slate-800 border-slate-700 p-6">
+          <Card className="bg-slate-800 border-0 shadow-lg p-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-purple-400" />
+              <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">AI評価</p>
+                <p className="text-sm text-slate-400">AI Evaluation</p>
                 <p className="text-2xl font-bold text-slate-50">GPT + Whisper</p>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* シーングリッド */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {scenes.map((scene) => (
-            <Card key={scene.id} className="bg-slate-800 border-slate-700 hover:border-indigo-500/50 transition-all duration-300 group">
-              <div className="p-6">
-                {/* アイコンとタイトル */}
-                <div className="flex items-start space-x-3 mb-4">
-                  <div className="text-3xl">{scene.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-slate-50 group-hover:text-indigo-400 transition-colors duration-200">
-                      {scene.title}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* 説明 */}
-                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                  {scene.description}
-                </p>
-
-                {/* CTAボタン */}
-                <Button
-                  onClick={() => handleStartRoleplay(scene.id)}
-                  variant="secondary"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white border-0 group-hover:bg-indigo-700 transition-all duration-200"
+        {/* セクション1: Basic Customer Service Scenes */}
+        <div className="mb-10">
+          <h2 className="text-base font-semibold text-slate-300 mt-10 mb-4 flex items-center">
+            <UserCheck className="w-4 h-4 mr-2 text-indigo-400" />
+            📂 Basic Customer Service Scenes
+          </h2>
+          <p className="text-sm text-slate-400 mb-6">
+            Essential scenarios for everyday customer interactions and first-time visitors.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6">
+            {categories.basic.map((scene, index) => {
+              const accentColor = getCardAccentColor(index)
+              const accentClasses = getAccentClasses(accentColor)
+              
+              return (
+                <Card 
+                  key={scene.id} 
+                  className="min-h-[180px] p-5 bg-slate-800 rounded-lg shadow hover:shadow-md flex flex-col justify-between transition group"
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  ロープレを始める
-                </Button>
-              </div>
-            </Card>
-          ))}
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-10 h-10 ${accentClasses.iconBg} rounded-lg flex items-center justify-center`}>
+                        <span className="text-lg">{scene.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`text-base font-semibold text-white ${accentClasses.hoverText} transition-colors duration-200`}>
+                          {scene.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-snug">
+                      {scene.description}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleStartRoleplay(scene.id)}
+                    className={`mt-4 w-full text-sm ${accentClasses.buttonBg} text-white border-0 transition-all duration-200 shadow-sm hover:shadow-md`}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Roleplay
+                  </Button>
+                </Card>
+              )
+            })}
+          </div>
         </div>
 
-        {/* フッター情報 */}
+        {/* セクション2: Advanced Interaction Scenes */}
+        <div className="mb-10">
+          <h2 className="text-base font-semibold text-slate-300 mt-10 mb-4 flex items-center">
+            <MessageSquare className="w-4 h-4 mr-2 text-cyan-400" />
+            📂 Advanced Interaction Scenes
+          </h2>
+          <p className="text-sm text-slate-400 mb-6">
+            Complex scenarios requiring advanced communication skills and problem-solving.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6">
+            {categories.advanced.map((scene, index) => {
+              const accentColor = getCardAccentColor(index + 3)
+              const accentClasses = getAccentClasses(accentColor)
+              
+              return (
+                <Card 
+                  key={scene.id} 
+                  className="min-h-[180px] p-5 bg-slate-800 rounded-lg shadow hover:shadow-md flex flex-col justify-between transition group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-10 h-10 ${accentClasses.iconBg} rounded-lg flex items-center justify-center`}>
+                        <span className="text-lg">{scene.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`text-base font-semibold text-white ${accentClasses.hoverText} transition-colors duration-200`}>
+                          {scene.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-snug">
+                      {scene.description}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleStartRoleplay(scene.id)}
+                    className={`mt-4 w-full text-sm ${accentClasses.buttonBg} text-white border-0 transition-all duration-200 shadow-sm hover:shadow-md`}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Roleplay
+                  </Button>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* セクション3: Special Situation Scenes */}
+        <div className="mb-10">
+          <h2 className="text-base font-semibold text-slate-300 mt-10 mb-4 flex items-center">
+            <ShoppingBag className="w-4 h-4 mr-2 text-amber-400" />
+            📂 Special Situation Scenes
+          </h2>
+          <p className="text-sm text-slate-400 mb-6">
+            Challenging scenarios for handling difficult customers and special requests.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6">
+            {categories.special.map((scene, index) => {
+              const accentColor = getCardAccentColor(index + 6)
+              const accentClasses = getAccentClasses(accentColor)
+              
+              return (
+                <Card 
+                  key={scene.id} 
+                  className="min-h-[180px] p-5 bg-slate-800 rounded-lg shadow hover:shadow-md flex flex-col justify-between transition group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-10 h-10 ${accentClasses.iconBg} rounded-lg flex items-center justify-center`}>
+                        <span className="text-lg">{scene.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`text-base font-semibold text-white ${accentClasses.hoverText} transition-colors duration-200`}>
+                          {scene.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-snug">
+                      {scene.description}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => handleStartRoleplay(scene.id)}
+                    className={`mt-4 w-full text-sm ${accentClasses.buttonBg} text-white border-0 transition-all duration-200 shadow-sm hover:shadow-md`}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Roleplay
+                  </Button>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Footer説明 */}
         <div className="mt-12 text-center">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-slate-50 mb-2">💡 シーン別評価の特徴</h3>
+          <div className="bg-slate-800/50 border-0 shadow-lg rounded-xl p-6 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-slate-50 mb-2 flex items-center justify-center">
+              <Star className="w-5 h-5 mr-2 text-amber-400" />
+              Scene-Specific AI Evaluation
+            </h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              各シーンに応じて評価基準とAIプロンプトが最適化されています。
-              より実践的で状況に適したフィードバックを受けることができます。
+              Each scene is evaluated based on context-specific AI criteria and tailored feedback.
+              Practice scenarios that match your learning goals and receive personalized guidance.
             </p>
           </div>
+          <p className="text-xs text-slate-500 mt-6">
+            ⚠️ Each scene is evaluated based on context-specific AI criteria and tailored feedback.
+          </p>
         </div>
       </div>
     </div>
