@@ -18,6 +18,8 @@ interface Scene {
   icon: string
 }
 
+
+
 export default function RecordPage() {
   const [scenes, setScenes] = useState<Scene[]>([])
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
@@ -30,7 +32,6 @@ export default function RecordPage() {
   const [realtimeTranscript, setRealtimeTranscript] = useState<string>('')
   const [transcriptionHistory, setTranscriptionHistory] = useState<string[]>([])
   const [realtimeEnabled, setRealtimeEnabled] = useState(true)
-  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -52,6 +53,8 @@ export default function RecordPage() {
       }
     }
   }, [scenes, searchParams])
+
+  
 
   const performRealtimeTranscription = useCallback(async () => {
     if (!isRecording || !realtimeEnabled) {
@@ -161,6 +164,7 @@ export default function RecordPage() {
 
   const handleSceneSelection = (sceneId: string) => {
     const scene = scenes.find(s => s.id === sceneId)
+    console.log('Selected scene:', scene)
     if (scene) {
       setSelectedScene(scene)
     }
@@ -257,6 +261,12 @@ export default function RecordPage() {
   }
 
   const processRecording = async () => {
+    console.log('processRecording called', {
+      hasAudioBlob: !!audioBlob,
+      selectedScene: selectedScene,
+      edgeFunction: selectedScene?.edge_function
+    })
+    
     if (!audioBlob || !selectedScene) return
 
     setIsProcessing(true)
@@ -275,16 +285,23 @@ export default function RecordPage() {
         .from('recordings')
         .getPublicUrl(fileName)
 
+      const insertData = {
+        situation_id: selectedScene.id,
+        audio_url: publicUrl
+      }
+      
+      console.log('Inserting recording data:', insertData)
+
       const { data: recording, error: recordingError } = await supabase
         .from('recordings')
-        .insert({
-          situation_id: selectedScene.id,
-          audio_url: publicUrl
-        })
+        .insert(insertData)
         .select()
         .single()
 
-      if (recordingError) throw recordingError
+      if (recordingError) {
+        console.error('Recording insert error:', recordingError)
+        throw recordingError
+      }
 
       const whisperResponse = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/whisper`, {
         method: 'POST',
@@ -310,6 +327,13 @@ export default function RecordPage() {
 
       // シーン別の評価関数を呼び出す
       const evaluateFunction = selectedScene.edge_function
+      console.log('Calling evaluate function:', evaluateFunction)
+      console.log('Request data:', {
+        recordingId: recording.id,
+        transcript: transcript?.substring(0, 100) + '...',
+        situationId: selectedScene.id
+      })
+      
       const evaluateResponse = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${evaluateFunction}`, {
         method: 'POST',
         headers: {
@@ -322,6 +346,8 @@ export default function RecordPage() {
           situationId: selectedScene.id
         })
       })
+      
+      console.log('Evaluate response status:', evaluateResponse.status)
 
       if (!evaluateResponse.ok) {
         const errorText = await evaluateResponse.text()
@@ -442,6 +468,8 @@ export default function RecordPage() {
                   </button>
                 )}
               </div>
+
+
 
               {/* 波形表示 */}
               <WaveformVisualizer isRecording={isRecording} className="w-full" />

@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -30,12 +30,27 @@ serve(async (req) => {
     const audioResponse = await fetch(audioUrl)
     const audioBlob = await audioResponse.blob()
     
+    console.log('Downloaded audio blob:', {
+      size: audioBlob.size,
+      type: audioBlob.type
+    })
+    
     // Create form data for Whisper API
     const formData = new FormData()
-    formData.append('file', audioBlob, 'audio.webm')
+    
+    // WebMファイルを適切に処理
+    const fileName = 'audio.wav' // WAV形式で統一
+    const mimeType = 'audio/wav'
+    
+    // 新しいBlobを作成してMIMEタイプを明示的に設定
+    const audioFile = new Blob([audioBlob], { type: mimeType })
+    formData.append('file', audioFile, fileName)
     formData.append('model', 'whisper-1')
     formData.append('language', 'ja')
+    formData.append('response_format', 'json')
 
+    console.log('Sending to Whisper API with file:', fileName, 'mimeType:', mimeType)
+    
     // Call OpenAI Whisper API
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
@@ -44,21 +59,29 @@ serve(async (req) => {
       },
       body: formData,
     })
+    
+    console.log('Whisper API response status:', whisperResponse.status)
 
     if (!whisperResponse.ok) {
-      const error = await whisperResponse.text()
-      throw new Error(`Whisper API error: ${error}`)
+      const errorText = await whisperResponse.text()
+      console.error('Whisper API error response:', errorText)
+      throw new Error(`Whisper API error: ${errorText}`)
     }
 
-    const { text } = await whisperResponse.json()
+    const responseData = await whisperResponse.json()
+    console.log('OpenAI Whisper API response:', responseData)
+    
+    const text = responseData.text || responseData.transcript || ''
+    console.log('Extracted text:', text)
 
     return new Response(
       JSON.stringify({ transcript: text }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
