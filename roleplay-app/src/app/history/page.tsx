@@ -1,0 +1,215 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { createClient } from '@/lib/supabase/client'
+import { format } from 'date-fns'
+import { ja } from 'date-fns/locale'
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+interface HistoryItem {
+  id: string
+  created_at: string
+  scenario: {
+    title: string
+  }
+  evaluation: {
+    total_score: number
+  } | null
+}
+
+type SortOption = 'date_desc' | 'date_asc' | 'score_desc' | 'score_asc'
+
+export default function HistoryPage() {
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState<SortOption>('date_desc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const itemsPerPage = 10
+  
+  const supabase = createClient()
+
+  useEffect(() => {
+    fetchHistory()
+  }, [sortBy, currentPage])
+
+  const fetchHistory = async () => {
+    setLoading(true)
+    try {
+      let query = supabase
+        .from('recordings')
+        .select(`
+          id,
+          created_at,
+          scenarios (title),
+          evaluations (total_score)
+        `, { count: 'exact' })
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'date_desc':
+          query = query.order('created_at', { ascending: false })
+          break
+        case 'date_asc':
+          query = query.order('created_at', { ascending: true })
+          break
+        case 'score_desc':
+        case 'score_asc':
+          // For score sorting, we'll sort client-side after fetching
+          query = query.order('created_at', { ascending: false })
+          break
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * itemsPerPage
+      const to = from + itemsPerPage - 1
+      query = query.range(from, to)
+
+      const { data, error, count } = await query
+
+      if (error) throw error
+
+      let formattedData = data?.map(r => ({
+        id: r.id,
+        created_at: r.created_at,
+        scenario: r.scenarios,
+        evaluation: r.evaluations?.[0] || null
+      })) || []
+
+      // Client-side sorting for scores
+      if (sortBy === 'score_desc' || sortBy === 'score_asc') {
+        formattedData.sort((a, b) => {
+          const scoreA = a.evaluation?.total_score ?? -1
+          const scoreB = b.evaluation?.total_score ?? -1
+          return sortBy === 'score_desc' ? scoreB - scoreA : scoreA - scoreB
+        })
+      }
+
+      setHistory(formattedData)
+      setTotalPages(Math.ceil((count || 0) / itemsPerPage))
+    } catch (error) {
+      console.error('Error fetching history:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600'
+    if (score >= 60) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  return (
+    <div className="container mx-auto p-6 max-w-6xl">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">履歴</h1>
+        <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_desc">日付（新しい順）</SelectItem>
+            <SelectItem value="date_asc">日付（古い順）</SelectItem>
+            <SelectItem value="score_desc">スコア（高い順）</SelectItem>
+            <SelectItem value="score_asc">スコア（低い順）</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {loading ? (
+        <p className="text-center text-gray-500">読み込み中...</p>
+      ) : history.length > 0 ? (
+        <>
+          <div className="space-y-4">
+            {history.map((item) => (
+              <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg">{item.scenario?.title || 'シナリオなし'}</CardTitle>
+                      <CardDescription>
+                        {format(new Date(item.created_at), 'yyyy年MM月dd日 HH:mm', { locale: ja })}
+                      </CardDescription>
+                    </div>
+                    {item.evaluation ? (
+                      <div className="text-right">
+                        <div className={`text-2xl font-bold ${getScoreColor(item.evaluation.total_score)}`}>
+                          {item.evaluation.total_score}点
+                        </div>
+                        <Link href={`/result/${item.id}`}>
+                          <Button variant="outline" size="sm" className="mt-2">
+                            詳細を見る
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="text-right">
+                        <p className="text-gray-500 mb-2">未評価</p>
+                        <Link href={`/record?retry=${item.id}`}>
+                          <Button variant="outline" size="sm">
+                            評価する
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className="w-10"
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-gray-500 mb-4">まだ履歴がありません</p>
+            <Link href="/record">
+              <Button>録音を始める</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
