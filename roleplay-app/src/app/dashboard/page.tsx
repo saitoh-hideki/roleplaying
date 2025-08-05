@@ -104,12 +104,21 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-6">
         {/* ヘッダー */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">
-            🧑‍🏫 Roleplay Dashboard
-          </h1>
-          <p className="text-sm text-slate-400">
-            Track your customer interaction practice sessions and analyze your progress.
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-2">
+                🧑‍🏫 Roleplay Dashboard
+              </h1>
+              <p className="text-sm text-slate-400">
+                Track your customer interaction practice sessions and analyze your progress.
+              </p>
+            </div>
+            <Link href="/scenes">
+              <Button className="bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-2">
+                🎯 Training Scenes
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 統計パネル（3枚の指標カード） */}
@@ -191,45 +200,47 @@ export default function DashboardPage() {
           </div>
 
           {/* Score Trend Chart */}
-          <div className="bg-slate-800 rounded-lg p-4">
-            <h3 className="text-base font-semibold text-white mb-4">📈 Score Trend</h3>
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-base font-semibold text-white mb-6">📈 Score Trend</h3>
             {scoreData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={scoreData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#9ca3af"
-                    fontSize={12}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    domain={[0, 100]} 
-                    stroke="#9ca3af"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: '#1f2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
-                      color: '#f1f5f9'
-                    }}
-                    labelStyle={{ color: '#9ca3af' }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="#60a5fa" 
-                    strokeWidth={3}
-                    dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#60a5fa', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="bg-slate-700 rounded-lg p-4">
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={scoreData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#9ca3af"
+                      fontSize={12}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      stroke="#9ca3af"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: '#1f2937',
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+                        color: '#f1f5f9'
+                      }}
+                      labelStyle={{ color: '#9ca3af' }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="#60a5fa" 
+                      strokeWidth={3}
+                      dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: '#60a5fa', strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">

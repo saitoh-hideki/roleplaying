@@ -18,8 +18,6 @@ interface Scene {
   icon: string
 }
 
-
-
 export default function RecordPage() {
   const [scenes, setScenes] = useState<Scene[]>([])
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
@@ -53,8 +51,6 @@ export default function RecordPage() {
       }
     }
   }, [scenes, searchParams])
-
-  
 
   const performRealtimeTranscription = useCallback(async () => {
     if (!isRecording || !realtimeEnabled) {
@@ -202,7 +198,7 @@ export default function RecordPage() {
     } catch (error) {
       console.error('Error accessing microphone:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      alert(`マイクへのアクセスに失敗しました: ${errorMessage}`)
+      alert(`Failed to access microphone: ${errorMessage}`)
     }
   }
 
@@ -254,7 +250,7 @@ export default function RecordPage() {
     } catch (error) {
       console.error('Error transcribing audio:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      alert(`文字起こし中にエラーが発生しました: ${errorMessage}`)
+      alert(`Error occurred during transcription: ${errorMessage}`)
     } finally {
       setIsTranscribing(false)
     }
@@ -361,7 +357,7 @@ export default function RecordPage() {
     } catch (error) {
       console.error('Error processing recording:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      alert(`録音の処理中にエラーが発生しました: ${errorMessage}`)
+      alert(`Error occurred while processing recording: ${errorMessage}`)
     } finally {
       setIsProcessing(false)
     }
@@ -378,10 +374,10 @@ export default function RecordPage() {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* ページタイトルと設定 */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-slate-50">🎙️ 接客ロープレ録音</h1>
+          <h1 className="text-3xl font-bold text-slate-50">🎙️ Roleplay Session Recorder</h1>
           <div className="flex items-center space-x-3">
             <Settings className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-400">リアルタイム文字起こし</span>
+            <span className="text-sm font-medium text-slate-400">Real-time Transcription</span>
             <Switch
               checked={realtimeEnabled}
               onCheckedChange={setRealtimeEnabled}
@@ -398,7 +394,7 @@ export default function RecordPage() {
             <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0">
               <div className="flex items-center space-x-2 mb-4">
                 <Play className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-lg font-semibold">🎭 シーン選択</h2>
+                <h2 className="text-lg font-semibold">🎭 Scene Selection</h2>
               </div>
               
               {/* 選択されたシーンの表示 */}
@@ -413,12 +409,12 @@ export default function RecordPage() {
               )}
               
               <p className="text-sm text-slate-400 mb-4">
-                {selectedScene ? 'シーンが選択されています。録音を開始してください。' : '練習したいシーンを選択してください'}
+                {selectedScene ? 'Scene selected. Ready to start recording.' : 'Select a scene to practice'}
               </p>
               
               <Select value={selectedScene?.id || ''} onValueChange={handleSceneSelection}>
                 <SelectTrigger className="w-full border-2 border-slate-600 hover:border-indigo-400 focus:border-indigo-500 rounded-lg bg-slate-700 text-slate-50">
-                  <SelectValue placeholder="シーンを選択してください" />
+                  <SelectValue placeholder="Select a scene" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-600">
                   {scenes.map(scene => (
@@ -438,9 +434,9 @@ export default function RecordPage() {
               
               {/* タイトル */}
               <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">🎙️ 録音コントロール</h2>
+                <h2 className="text-lg font-semibold mb-2">🎙️ Recording Controls</h2>
                 <p className="text-sm text-slate-400">
-                  {selectedScene ? '準備ができたら録音を開始してください' : 'まずシーンを選択してください'}
+                  {selectedScene ? 'Ready to start recording' : 'Please select a scene first'}
                 </p>
               </div>
               
@@ -469,15 +465,13 @@ export default function RecordPage() {
                 )}
               </div>
 
-
-
               {/* 波形表示 */}
               <WaveformVisualizer isRecording={isRecording} className="w-full" />
 
               {/* ステータステキスト */}
               <div className="text-center">
                 <p className="text-sm text-slate-400">
-                  {isRecording ? '録音中...' : audioBlob ? '録音完了' : '録音を開始するにはボタンを押してください'}
+                  {isRecording ? 'Recording...' : audioBlob ? 'Recording completed' : 'Press the button to start recording'}
                 </p>
               </div>
 
@@ -493,12 +487,12 @@ export default function RecordPage() {
                     {isTranscribing ? (
                       <div className="flex items-center justify-center">
                         <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mr-2"></div>
-                        文字起こし中...
+                        Transcribing...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
                         <FileText className="w-4 h-4 mr-2" />
-                        文字起こし
+                        Transcribe
                       </div>
                     )}
                   </button>
@@ -514,12 +508,12 @@ export default function RecordPage() {
                     {isProcessing ? (
                       <div className="flex items-center justify-center">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        評価中...
+                        Evaluating...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
                         <Star className="w-4 h-4 mr-2" />
-                        評価開始
+                        Start Evaluation
                       </div>
                     )}
                   </button>
@@ -535,7 +529,7 @@ export default function RecordPage() {
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-indigo-400" />
                   <h2 className="text-lg font-semibold">
-                    {realtimeEnabled ? '📝 リアルタイム文字起こし' : '📝 文字起こし結果'}
+                    {realtimeEnabled ? '📝 Real-time Transcription' : '📝 Transcription Result'}
                   </h2>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -547,8 +541,8 @@ export default function RecordPage() {
               </div>
               <p className="text-sm text-slate-400 mb-4">
                 {realtimeEnabled 
-                  ? (isRecording ? '録音中にリアルタイムで文字起こしが表示されます' : '録音を開始すると文字起こしが開始されます')
-                  : (transcript ? '文字起こし結果が表示されています' : '録音完了後に文字起こし結果が表示されます')
+                  ? (isRecording ? 'Real-time transcription will be displayed during recording' : 'Transcription will start when recording begins')
+                  : (transcript ? 'Transcription result is displayed' : 'Transcription result will be displayed after recording completion')
                 }
               </p>
               <div className="h-80 overflow-y-auto border border-slate-600 rounded-lg p-4 bg-slate-700">
@@ -558,11 +552,11 @@ export default function RecordPage() {
                       {/* リアルタイム文字起こしの表示 */}
                       <div className="bg-slate-600 rounded-xl p-4 shadow-sm border border-indigo-500/30">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium text-slate-200">最新の文字起こし結果</span>
+                          <span className="text-sm font-medium text-slate-200">Latest Transcription Result</span>
                           {isRecording && (
                             <div className="flex items-center space-x-2">
                               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-slate-400">録音中</span>
+                              <span className="text-xs text-slate-400">Recording</span>
                             </div>
                           )}
                         </div>
@@ -570,7 +564,7 @@ export default function RecordPage() {
                           {realtimeTranscript}
                         </div>
                         <div className="mt-2 text-xs text-slate-400">
-                          更新時刻: {new Date().toLocaleTimeString()}
+                          Updated: {new Date().toLocaleTimeString()}
                         </div>
                       </div>
                       
@@ -579,7 +573,7 @@ export default function RecordPage() {
                         <details className="bg-slate-600 rounded-xl shadow-sm border border-slate-500">
                           <summary className="p-3 cursor-pointer hover:bg-slate-500 rounded-xl flex items-center justify-between">
                             <span className="text-sm font-medium text-slate-200">
-                              文字起こし履歴 ({transcriptionHistory.length}回)
+                              Transcription History ({transcriptionHistory.length} times)
                             </span>
                           </summary>
                           <div className="p-3 pt-0 space-y-2 max-h-48 overflow-y-auto">
@@ -587,10 +581,10 @@ export default function RecordPage() {
                               <div key={index} className="text-sm p-2 bg-slate-500 rounded-lg border-l-2 border-indigo-400">
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="text-xs text-slate-300 font-medium">
-                                    {Math.floor(index * 3)}秒目
+                                    {Math.floor(index * 3)}s
                                   </span>
                                   <span className="text-xs text-slate-400">
-                                    {text.length}文字
+                                    {text.length} chars
                                   </span>
                                 </div>
                                 <p className="text-slate-100">{text}</p>
@@ -606,8 +600,8 @@ export default function RecordPage() {
                         <>
                           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                           <div className="text-center">
-                            <p className="font-medium">文字起こし中...</p>
-                            <p className="text-sm">音声を認識しています</p>
+                            <p className="font-medium">Transcribing...</p>
+                            <p className="text-sm">Recognizing speech</p>
                           </div>
                         </>
                       ) : (
@@ -616,8 +610,8 @@ export default function RecordPage() {
                             <Mic className="w-6 h-6 text-slate-400" />
                           </div>
                           <div className="text-center">
-                            <p className="font-medium">録音を開始してください</p>
-                            <p className="text-sm">リアルタイムで文字起こしが表示されます</p>
+                            <p className="font-medium">Please start recording</p>
+                            <p className="text-sm">Real-time transcription will be displayed</p>
                           </div>
                         </>
                       )}
@@ -629,17 +623,17 @@ export default function RecordPage() {
                       {/* 非リアルタイム文字起こし結果の表示 */}
                       <div className="bg-slate-600 rounded-xl p-4 shadow-sm border border-indigo-500/30">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium text-slate-200">文字起こし結果</span>
+                          <span className="text-sm font-medium text-slate-200">Transcription Result</span>
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs text-slate-400">完了</span>
+                            <span className="text-xs text-slate-400">Completed</span>
                           </div>
                         </div>
                         <div className="text-slate-100 leading-relaxed whitespace-pre-wrap bg-slate-500 p-3 rounded-lg border-l-4 border-indigo-400">
                           {transcript}
                         </div>
                         <div className="mt-2 text-xs text-slate-400">
-                          文字起こし完了時刻: {new Date().toLocaleTimeString()}
+                          Transcription completed: {new Date().toLocaleTimeString()}
                         </div>
                       </div>
                     </div>
@@ -649,8 +643,8 @@ export default function RecordPage() {
                         <FileText className="w-6 h-6 text-slate-400" />
                       </div>
                       <div className="text-center">
-                        <p className="font-medium">録音完了後に文字起こし</p>
-                        <p className="text-sm">非リアルタイムモードです</p>
+                        <p className="font-medium">Transcribe after recording</p>
+                        <p className="text-sm">Non-real-time mode</p>
                       </div>
                     </div>
                   )

@@ -40,10 +40,13 @@ export function LearningPlanner() {
         .from('reflection_notes')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(3)
+        .limit(10)
 
       if (notesError) {
         console.log('Notes table might not exist yet:', notesError.message)
+      } else {
+        console.log('Fetched notes count:', notesData?.length || 0)
+        console.log('Notes data:', notesData)
       }
 
       // Fetch practice plans with scene titles
@@ -91,6 +94,8 @@ export function LearningPlanner() {
       setLoading(false)
     }
   }
+
+
 
   const saveNote = async () => {
     if (!newNote.trim()) return
