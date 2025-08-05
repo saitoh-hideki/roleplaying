@@ -25,21 +25,17 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-black`}
       >
-        <nav className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-gray-900">接客ロープレ</h1>
-              <div className="flex gap-4">
-                <a href="/dashboard" className="text-gray-600 hover:text-gray-900">ダッシュボード</a>
-                <a href="/record" className="text-gray-600 hover:text-gray-900">録音</a>
-                <a href="/history" className="text-gray-600 hover:text-gray-900">履歴</a>
-                <a href="/admin/scenarios" className="text-gray-600 hover:text-gray-900">管理</a>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <header className="h-16 bg-slate-800 text-white flex items-center px-6 justify-between shadow-lg border-b border-slate-700">
+          <div className="text-xl font-bold tracking-wide">🖤 接客ロープレ</div>
+          <nav className="flex space-x-8 text-sm">
+            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/dashboard">ダッシュボード</a>
+            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/record">録音</a>
+            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/history">履歴</a>
+            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/admin/scenarios">管理</a>
+          </nav>
+        </header>
         <main>{children}</main>
       </body>
     </html>
