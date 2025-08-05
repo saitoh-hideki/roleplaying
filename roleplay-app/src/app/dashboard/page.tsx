@@ -8,7 +8,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { BarChart3, TrendingUp, Clock, Award, Play, ArrowRight } from 'lucide-react'
+import { BarChart3, TrendingUp, Clock, Award, Play, ArrowRight, Target, Zap } from 'lucide-react'
 
 interface RecentRoleplay {
   id: string
@@ -87,71 +87,72 @@ export default function DashboardPage() {
     }
   }
 
+  // 統計データの計算
+  const totalPracticeCount = recentRoleplays.length
+  const evaluatedRoleplays = recentRoleplays.filter(r => r.evaluation)
+  const averageScore = evaluatedRoleplays.length > 0 
+    ? Math.round(evaluatedRoleplays.reduce((acc, r) => acc + (r.evaluation?.total_score || 0), 0) / evaluatedRoleplays.length)
+    : 0
+  const highestScore = evaluatedRoleplays.length > 0 
+    ? Math.max(...evaluatedRoleplays.map(r => r.evaluation?.total_score || 0))
+    : 0
+
   return (
     <div className="min-h-screen bg-black">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* ページタイトル */}
+        {/* ページタイトル + CTA */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-50">接客ロープレ ダッシュボード</h1>
-            <p className="text-slate-400 mt-1">あなたの接客スキル向上をサポートします</p>
+            <h1 className="text-3xl font-bold text-slate-50 tracking-tight">接客ロープレ ダッシュボード</h1>
+            <p className="text-slate-400 mt-2 text-base">あなたの接客スキル向上をサポートします</p>
           </div>
           <Link href="/record">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center space-x-2">
+            <Button className="bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200">
               <Play className="w-4 h-4" />
               <span>ロープレを始める</span>
             </Button>
           </Link>
         </div>
+
         {/* 統計カード */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
+          <Card className="bg-slate-800 border-slate-700 text-white hover:shadow-lg transition-all duration-200 group">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-indigo-500/20 rounded-xl">
+                <div className="p-3 bg-indigo-500/20 rounded-xl group-hover:bg-indigo-500/30 transition-colors">
                   <BarChart3 className="w-6 h-6 text-indigo-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-400">総練習回数</p>
-                  <p className="text-2xl font-bold text-slate-50">{recentRoleplays.length}</p>
+                  <p className="text-sm font-medium text-slate-400 mb-1">総練習回数</p>
+                  <p className="text-2xl font-bold text-slate-50">{totalPracticeCount}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
+          <Card className="bg-slate-800 border-slate-700 text-white hover:shadow-lg transition-all duration-200 group">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-sky-500/20 rounded-xl">
+                <div className="p-3 bg-sky-500/20 rounded-xl group-hover:bg-sky-500/30 transition-colors">
                   <TrendingUp className="w-6 h-6 text-sky-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-400">平均スコア</p>
-                  <p className="text-2xl font-bold text-slate-50">
-                    {recentRoleplays.filter(r => r.evaluation).length > 0 
-                      ? Math.round(recentRoleplays.filter(r => r.evaluation).reduce((acc, r) => acc + (r.evaluation?.total_score || 0), 0) / recentRoleplays.filter(r => r.evaluation).length)
-                      : 0
-                    }点
-                  </p>
+                  <p className="text-sm font-medium text-slate-400 mb-1">平均スコア</p>
+                  <p className="text-2xl font-bold text-slate-50">{averageScore}点</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
+          <Card className="bg-slate-800 border-slate-700 text-white hover:shadow-lg transition-all duration-200 group">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <Award className="w-6 h-6 text-purple-400" />
+                <div className="p-3 bg-emerald-500/20 rounded-xl group-hover:bg-emerald-500/30 transition-colors">
+                  <Award className="w-6 h-6 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-400">最高スコア</p>
-                  <p className="text-2xl font-bold text-slate-50">
-                    {recentRoleplays.length > 0 
-                      ? Math.max(...recentRoleplays.filter(r => r.evaluation).map(r => r.evaluation?.total_score || 0))
-                      : 0
-                    }点
-                  </p>
+                  <p className="text-sm font-medium text-slate-400 mb-1">最高スコア</p>
+                  <p className="text-2xl font-bold text-slate-50">{highestScore}点</p>
                 </div>
               </div>
             </CardContent>
@@ -159,7 +160,7 @@ export default function DashboardPage() {
         </div>
 
         {/* スコア推移チャート */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-8">
+        <Card className="bg-slate-800 border-slate-700 text-white mb-8">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-slate-50">
               <TrendingUp className="w-5 h-5 text-sky-400" />
@@ -169,18 +170,21 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {scoreData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={scoreData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis 
                     dataKey="date" 
                     stroke="#9ca3af"
                     fontSize={12}
+                    tickLine={false}
                   />
                   <YAxis 
                     domain={[0, 100]} 
                     stroke="#9ca3af"
                     fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
                   />
                   <Tooltip 
                     contentStyle={{
@@ -190,6 +194,7 @@ export default function DashboardPage() {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
                       color: '#f1f5f9'
                     }}
+                    labelStyle={{ color: '#9ca3af' }}
                   />
                   <Line 
                     type="monotone" 
@@ -236,8 +241,8 @@ export default function DashboardPage() {
           ) : recentRoleplays.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recentRoleplays.map((roleplay) => (
-                <Card key={roleplay.id} className="bg-slate-800 border-slate-700 text-slate-50 group hover:shadow-xl transition-all duration-200">
-                  <CardHeader>
+                <Card key={roleplay.id} className="bg-slate-800 border-slate-700 text-white group hover:shadow-xl transition-all duration-200 hover:border-slate-600">
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-lg text-slate-50 group-hover:text-slate-200 transition-colors">
                       {roleplay.scenario?.title || 'シナリオなし'}
                     </CardTitle>
@@ -273,7 +278,7 @@ export default function DashboardPage() {
                       <div className="space-y-4">
                         <div className="text-center py-4">
                           <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <Award className="w-6 h-6 text-slate-400" />
+                            <Target className="w-6 h-6 text-slate-400" />
                           </div>
                           <p className="text-slate-400 font-medium">未評価</p>
                           <p className="text-slate-500 text-sm">評価を完了してください</p>
@@ -290,15 +295,15 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <Card className="bg-slate-800 border-slate-700 text-slate-50">
+            <Card className="bg-slate-800 border-slate-700 text-white">
               <CardContent className="text-center py-16">
                 <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Play className="w-8 h-8 text-slate-400" />
+                  <Zap className="w-8 h-8 text-slate-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-50 mb-2">まだロープレの記録がありません</h3>
                 <p className="text-slate-400 mb-6">最初のロープレを始めて、接客スキルを向上させましょう</p>
                 <Link href="/record">
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Button className="bg-sky-600 hover:bg-sky-700 text-white">
                     最初のロープレを始める
                   </Button>
                 </Link>

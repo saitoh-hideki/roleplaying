@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Navigation } from "@/components/ui/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,14 +28,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-black`}
       >
-        <header className="h-16 bg-slate-800 text-white flex items-center px-6 justify-between shadow-lg border-b border-slate-700">
-          <div className="text-xl font-bold tracking-wide">🖤 接客ロープレ</div>
-          <nav className="flex space-x-8 text-sm">
-            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/dashboard">ダッシュボード</a>
-            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/record">録音</a>
-            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/history">履歴</a>
-            <a className="text-white hover:text-indigo-300 transition-colors font-medium" href="/admin/scenarios">管理</a>
-          </nav>
+        <header className="h-14 bg-black text-white shadow-md flex items-center justify-between px-6 z-50 border-b border-slate-800">
+          {/* ロゴ / タイトル */}
+          <div className="text-lg font-bold tracking-tight select-none">
+            🖤 接客ロープレ
+          </div>
+
+          {/* ナビゲーション */}
+          <Navigation />
         </header>
         <main>{children}</main>
       </body>
