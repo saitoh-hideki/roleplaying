@@ -13,5 +13,5 @@ CREATE INDEX idx_feedback_reflections_evaluation_id ON feedback_reflections(eval
 -- Enable RLS
 ALTER TABLE feedback_reflections ENABLE ROW LEVEL SECURITY;
 
--- Create policy for public access (prototype only)
-CREATE POLICY IF NOT EXISTS "Public Access" ON feedback_reflections FOR ALL USING (true); 
+-- Create policy for public access
+CREATE POLICY "Public Access" ON feedback_reflections FOR ALL USING (true); 

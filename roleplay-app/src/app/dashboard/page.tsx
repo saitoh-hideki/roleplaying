@@ -50,7 +50,16 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(6)
 
-      if (error) throw error
+      if (error) {
+        console.error('Recordings fetch error:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw error
+      }
 
       const formattedRecordings = recordings?.map(r => ({
         id: r.id,
@@ -74,7 +83,16 @@ export default function DashboardPage() {
         .order('created_at', { ascending: true })
         .limit(10)
 
-      if (evalError) throw evalError
+      if (evalError) {
+        console.error('Evaluations fetch error:', evalError)
+        console.error('Error details:', {
+          code: evalError.code,
+          message: evalError.message,
+          details: evalError.details,
+          hint: evalError.hint
+        })
+        throw evalError
+      }
 
       const scores = evaluations?.map(e => ({
         date: format(new Date(e.created_at), 'MM/dd'),
@@ -84,6 +102,11 @@ export default function DashboardPage() {
       setScoreData(scores)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
+      // より詳細なエラー情報を表示
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+      }
     } finally {
       setLoading(false)
     }

@@ -38,9 +38,9 @@ CREATE TRIGGER update_practice_plans_updated_at BEFORE UPDATE ON practice_plans
 ALTER TABLE reflection_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE practice_plans ENABLE ROW LEVEL SECURITY;
 
--- Create policies for public access (prototype only)
-CREATE POLICY IF NOT EXISTS "Public Access" ON reflection_notes FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON practice_plans FOR ALL USING (true);
+-- Create policies for public access
+CREATE POLICY "Public Access" ON reflection_notes FOR ALL USING (true);
+CREATE POLICY "Public Access" ON practice_plans FOR ALL USING (true);
 
 -- Insert sample data for testing
 INSERT INTO reflection_notes (user_id, content, created_at) VALUES

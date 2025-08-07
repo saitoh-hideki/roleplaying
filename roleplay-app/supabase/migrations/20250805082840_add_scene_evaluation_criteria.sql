@@ -24,7 +24,7 @@ CREATE TRIGGER update_scene_evaluation_criteria_updated_at BEFORE UPDATE ON scen
 ALTER TABLE scene_evaluation_criteria ENABLE ROW LEVEL SECURITY;
 
 -- Create policy for public access
-CREATE POLICY IF NOT EXISTS "Public Access" ON scene_evaluation_criteria FOR ALL USING (true);
+CREATE POLICY "Public Access" ON scene_evaluation_criteria FOR ALL USING (true);
 
 -- Insert sample evaluation criteria for existing scenes
 INSERT INTO scene_evaluation_criteria (scene_id, criterion_name, criterion_description, max_score, sort_order) VALUES

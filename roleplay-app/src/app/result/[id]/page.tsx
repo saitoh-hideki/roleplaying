@@ -40,6 +40,21 @@ interface ResultData {
       type?: string
     }
   }[]
+  sceneFeedbackNotes: {
+    id: string
+    score: number
+    comment: string
+    scene_criterion: {
+      criterion_name: string
+      criterion_description?: string
+      max_score: number
+    }
+  }[]
+  scene?: {
+    id: string
+    title: string
+    description: string
+  }
 }
 
 export default function ResultPage() {
@@ -132,6 +147,64 @@ export default function ResultPage() {
       
       console.log('Feedback notes fetched successfully:', feedbackNotes)
 
+      // Fetch scene feedback notes
+      console.log('=== Fetching scene feedback notes ===')
+      console.log('Evaluation ID:', evaluation.id)
+      let sceneFeedbackNotes: any[] = []
+      try {
+        const { data: sceneFeedbackData, error: sceneFeedbackError } = await supabase
+          .from('scene_feedback_notes')
+          .select(`
+            id,
+            score,
+            comment,
+            scene_evaluation_criteria (criterion_name, criterion_description, max_score)
+          `)
+          .eq('evaluation_id', evaluation.id)
+
+        if (sceneFeedbackError) {
+          console.error('Scene feedback notes fetch error:', sceneFeedbackError)
+          console.error('Scene feedback error details:', {
+            code: sceneFeedbackError.code,
+            message: sceneFeedbackError.message,
+            details: sceneFeedbackError.details,
+            hint: sceneFeedbackError.hint
+          })
+          // エラーが発生しても処理を続行（テーブルが存在しない可能性）
+          console.log('Scene feedback notes table might not exist, continuing with empty array')
+        } else {
+          sceneFeedbackNotes = sceneFeedbackData || []
+          console.log('Scene feedback notes fetched successfully:', sceneFeedbackNotes)
+          console.log('Scene feedback notes count:', sceneFeedbackNotes.length)
+        }
+      } catch (error) {
+        console.error('Scene feedback notes fetch failed:', error)
+        // エラーが発生しても処理を続行
+        sceneFeedbackNotes = []
+      }
+      
+      console.log('Final scene feedback notes for UI:', sceneFeedbackNotes)
+
+      // Fetch the specific scene for this result
+      const { data: scene, error: sceneError } = await supabase
+        .from('scenes')
+        .select('id, title, description')
+        .eq('id', recording.situation_id)
+        .single()
+
+      if (sceneError) {
+        console.error('Scene fetch error:', sceneError)
+        console.error('Scene error details:', {
+          code: sceneError.code,
+          message: sceneError.message,
+          details: sceneError.details,
+          hint: sceneError.hint
+        })
+        throw sceneError
+      }
+      
+      console.log('Scene data fetched successfully:', scene)
+
       setData({
         recording: {
           ...recording,
@@ -146,7 +219,16 @@ export default function ResultPage() {
             max_score: (fn.evaluation_criteria as any)?.max_score || 0,
             type: 'basic' // 一時的にすべてbasicとして扱う
           }
-        }))
+        })),
+        sceneFeedbackNotes: sceneFeedbackNotes.map(sFn => ({
+          ...sFn,
+          scene_criterion: {
+            criterion_name: (sFn.scene_evaluation_criteria as any)?.criterion_name || '',
+            criterion_description: (sFn.scene_evaluation_criteria as any)?.criterion_description || '',
+            max_score: (sFn.scene_evaluation_criteria as any)?.max_score || 0
+          }
+        })),
+        scene: scene
       })
     } catch (error) {
       console.error('Error fetching result data:', error)
@@ -175,8 +257,14 @@ export default function ResultPage() {
   }
 
   // 基本評価とシーン評価を分離
-  const basicEvaluations = data?.feedbackNotes.filter(note => note.criterion.type === 'basic') || []
-  const sceneEvaluations = data?.feedbackNotes.filter(note => note.criterion.type === 'scene') || []
+  const basicEvaluations = data?.feedbackNotes || []
+  
+  // レーダーチャート用データ
+  const chartData = basicEvaluations.map(note => ({
+    label: note.criterion.label,
+    score: note.score,
+    maxScore: note.criterion.max_score,
+  }))
 
   if (loading) {
     return (
@@ -214,13 +302,6 @@ export default function ResultPage() {
       </div>
     )
   }
-
-  // チャート用データの準備（基本評価のみ）
-  const chartData = basicEvaluations.map(note => ({
-    label: note.criterion.label,
-    score: note.score,
-    maxScore: note.criterion.max_score
-  }))
 
   return (
     <div className="min-h-screen bg-black">
@@ -320,24 +401,26 @@ export default function ResultPage() {
             </Card>
 
             {/* シーン特有評価 */}
-            {sceneEvaluations.length > 0 && (
+            {data.sceneFeedbackNotes.length > 0 && (
               <Card className="bg-slate-800 border-slate-700 text-slate-50">
                 <CardHeader>
-                  <CardTitle className="text-slate-50">シーン特有評価</CardTitle>
+                  <CardTitle className="text-slate-50">
+                    {data.scene?.title || 'シーン'}特有評価
+                  </CardTitle>
                   <CardDescription className="text-slate-400">
-                    このシーン独自の評価観点
+                    {data.scene?.description || 'このシーン独自の評価観点'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {sceneEvaluations.map((note) => (
-                    <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.criterion.max_score)}`}>
+                  {data.sceneFeedbackNotes.map((note) => (
+                    <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.scene_criterion.max_score)}`}>
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-slate-800">{note.criterion.label}</h4>
-                        <span className={`text-lg font-bold ${getScoreColor(note.score, note.criterion.max_score)}`}>
-                          {note.score} / {note.criterion.max_score}
+                        <h4 className="font-semibold text-slate-800">{note.scene_criterion.criterion_name}</h4>
+                        <span className={`text-lg font-bold ${getScoreColor(note.score, note.scene_criterion.max_score)}`}>
+                          {note.score} / {note.scene_criterion.max_score}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-600 mb-3">{note.criterion.description}</p>
+                      <p className="text-sm text-slate-600 mb-3">{note.scene_criterion.criterion_description}</p>
                       <div className="bg-white p-3 rounded border">
                         <p className="text-sm text-slate-700">{note.comment}</p>
                       </div>

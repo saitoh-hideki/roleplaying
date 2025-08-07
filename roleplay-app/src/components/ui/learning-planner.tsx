@@ -42,6 +42,13 @@ export function LearningPlanner() {
         .order('created_at', { ascending: false })
 
       if (notesError) {
+        console.error('Notes table error:', notesError)
+        console.error('Notes error details:', {
+          code: notesError.code,
+          message: notesError.message,
+          details: notesError.details,
+          hint: notesError.hint
+        })
         console.log('Notes table might not exist yet:', notesError.message)
       } else {
         console.log('Fetched notes count:', notesData?.length || 0)
@@ -61,6 +68,13 @@ export function LearningPlanner() {
         .order('date', { ascending: true })
 
       if (plansError) {
+        console.error('Practice plans table error:', plansError)
+        console.error('Plans error details:', {
+          code: plansError.code,
+          message: plansError.message,
+          details: plansError.details,
+          hint: plansError.hint
+        })
         console.log('Practice plans table might not exist yet:', plansError.message)
       }
 
@@ -71,6 +85,13 @@ export function LearningPlanner() {
         .order('title')
 
       if (scenariosError) {
+        console.error('Scenes table error:', scenariosError)
+        console.error('Scenes error details:', {
+          code: scenariosError.code,
+          message: scenariosError.message,
+          details: scenariosError.details,
+          hint: scenariosError.hint
+        })
         console.log('Scenes table error:', scenariosError.message)
       }
 
@@ -88,6 +109,11 @@ export function LearningPlanner() {
       setScenarios(scenariosData || [])
     } catch (error) {
       console.error('Error fetching learning planner data:', error)
+      // より詳細なエラー情報を表示
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+      }
     } finally {
       setLoading(false)
     }

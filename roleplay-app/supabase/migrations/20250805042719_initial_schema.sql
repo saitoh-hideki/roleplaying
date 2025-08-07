@@ -122,10 +122,10 @@ ALTER TABLE evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE feedback_notes ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access (prototype only)
-CREATE POLICY IF NOT EXISTS "Public Access" ON manuals FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON scenes FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON scenarios FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON evaluation_criteria FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON recordings FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON evaluations FOR ALL USING (true);
-CREATE POLICY IF NOT EXISTS "Public Access" ON feedback_notes FOR ALL USING (true);
+CREATE POLICY "Public Access" ON manuals FOR ALL USING (true);
+CREATE POLICY "Public Access" ON scenes FOR ALL USING (true);
+CREATE POLICY "Public Access" ON scenarios FOR ALL USING (true);
+CREATE POLICY "Public Access" ON evaluation_criteria FOR ALL USING (true);
+CREATE POLICY "Public Access" ON recordings FOR ALL USING (true);
+CREATE POLICY "Public Access" ON evaluations FOR ALL USING (true);
+CREATE POLICY "Public Access" ON feedback_notes FOR ALL USING (true);

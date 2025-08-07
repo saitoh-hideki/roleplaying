@@ -38,6 +38,16 @@ export interface SceneEvaluationCriterion {
   updated_at: string
 }
 
+export interface SceneFeedbackNote {
+  id: string
+  evaluation_id: string
+  scene_criterion_id: string
+  score: number
+  comment: string
+  created_at: string
+  scene_criterion?: SceneEvaluationCriterion
+}
+
 export interface EvaluationCriterion {
   id: string
   label: string

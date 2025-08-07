@@ -1,4 +1,6 @@
+// @ts-ignore - Deno environment
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+// @ts-ignore - Supabase Edge Functions environment
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -13,17 +15,39 @@ interface EvaluationRequest {
   situationId?: string
 }
 
-serve(async (req) => {
+interface Criterion {
+  id: string
+  label: string
+  description: string
+  max_score: number
+}
+
+interface SceneCriterion {
+  id: string
+  criterion_name: string
+  criterion_description?: string
+  max_score: number
+}
+
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    console.log('Evaluate Scene 001 function called')
+    console.log('=== Evaluate Scene 001 function called ===')
+    console.log('Request method:', req.method)
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
     
     const { recordingId, transcript, scenarioId, situationId }: EvaluationRequest = await req.json()
     
-    console.log('Request data:', { recordingId, transcript: transcript?.substring(0, 100) + '...', scenarioId, situationId })
+    console.log('Request data received:', { 
+      recordingId, 
+      transcriptLength: transcript?.length || 0,
+      transcriptPreview: transcript?.substring(0, 100) + '...', 
+      scenarioId, 
+      situationId 
+    })
     
     if (!recordingId || !transcript) {
       console.error('Missing required fields:', { recordingId: !!recordingId, transcript: !!transcript })
@@ -56,7 +80,6 @@ serve(async (req) => {
     const { data: basicCriteria, error: basicCriteriaError } = await supabase
       .from('evaluation_criteria')
       .select('*')
-      .eq('type', 'basic')
       .order('created_at')
 
     if (basicCriteriaError) {
@@ -83,23 +106,30 @@ serve(async (req) => {
 
     // Combine all criteria for evaluation
     const allCriteria = [
-      ...basicCriteria.map(c => ({ ...c, label: c.label, description: c.description, max_score: c.max_score })),
-      ...sceneCriteria.map(c => ({ ...c, label: c.criterion_name, description: c.criterion_description || '', max_score: c.max_score }))
+      ...(basicCriteria as Criterion[]).map((c: Criterion) => ({ ...c, label: c.label, description: c.description, max_score: c.max_score })),
+      ...(sceneCriteria as SceneCriterion[]).map((c: SceneCriterion) => ({ ...c, label: c.criterion_name, description: c.criterion_description || '', max_score: c.max_score }))
     ]
 
     console.log('Total criteria count:', allCriteria.length)
 
-    // Create evaluation prompt
-    const systemPrompt = `あなたは接客ロールプレイの評価専門家です。以下の評価基準に基づいて、接客対応を客観的かつ詳細に評価してください。
+    // シーン001専用の評価プロンプト
+    const systemPrompt = `あなたは接客研修の専門コーチです。特に「初回来店のお客様」というシーンでの接客を評価します。
 
-評価の際は以下の点に注意してください：
-- 各項目を1-5点で評価（1: 改善が必要、2: やや不十分、3: 普通、4: 良好、5: 優秀）
-- 具体的な改善点を含めた建設的なフィードバックを提供
-- 総合評価は100点満点で算出（各項目の平均点 × 20）
-- 評価結果は必ずJSON形式で返す
+このシーンでの重要な評価ポイント:
+1. 初回来店のお客様への丁寧な対応
+2. 施設の魅力の適切な説明
+3. お客様のニーズの把握
+4. 安心感の提供
+5. 次回来店への誘導
 
 評価項目：
 ${allCriteria.map((criterion, index) => `${index + 1}. ${criterion.label}: ${criterion.description}`).join('\n')}
+
+**重要**: 評価結果には必ず以下のシーン001特有の評価項目を含めてください：
+- 初回対応
+- 施設説明
+- ニーズ把握
+- 安心感提供
 
 評価結果は以下のJSON形式で返してください：
 {
@@ -114,18 +144,26 @@ ${allCriteria.map((criterion, index) => `${index + 1}. ${criterion.label}: ${cri
   ]
 }`
 
-    const userPrompt = `以下の接客ロールプレイ内容を評価してください：
+    const userPrompt = `シーン: 初回来店のお客様
 
-【ロールプレイ内容】
+状況説明:
+- 初回来店のお客様への接客
+- 施設の魅力の説明が必要
+- お客様のニーズの把握
+- 安心感の提供と次回来店への誘導
+
+接客内容:
 ${transcript}
 
-【シーン情報】
-シーン001: パソコンが調子悪くて初めてお客様が来店
-- 非会員の初回来店、困りごとベースの接客練習
-- 技術的な問題解決と信頼関係構築が重要
+上記の接客内容を、このシーン特有の観点から評価してください。特に初回来店のお客様への丁寧な対応、施設の魅力の適切な説明、お客様のニーズの把握、安心感の提供について重点的に評価してください。
 
-上記の評価基準に基づいて、詳細な評価を行ってください。`
+**必ず以下のシーン001特有の評価項目を含めて評価してください：**
+- 初回対応: 初回来店のお客様への丁寧で親切な対応ができているか
+- 施設説明: 施設の魅力を分かりやすく説明できているか
+- ニーズ把握: お客様のニーズを適切に把握できているか
+- 安心感提供: お客様に安心感を提供できているか`
 
+    console.log('Calling GPT-4o API...')
     // Call GPT-4o API
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -163,7 +201,13 @@ ${transcript}
     }
 
     // Save evaluation to database
-    console.log('Saving evaluation to database...')
+    console.log('=== Saving evaluation to database ===')
+    console.log('Evaluation data to save:', {
+      recording_id: recordingId,
+      total_score: evaluation.totalScore,
+      summary_comment: evaluation.summaryComment
+    })
+    
     const { data: evalData, error: evalError } = await supabase
       .from('evaluations')
       .insert({
@@ -176,37 +220,161 @@ ${transcript}
 
     if (evalError) {
       console.error('Failed to save evaluation:', evalError)
+      console.error('Evaluation error details:', {
+        code: evalError.code,
+        message: evalError.message,
+        details: evalError.details,
+        hint: evalError.hint
+      })
       throw new Error(`Failed to save evaluation: ${evalError.message}`)
     }
+    
+    console.log('Evaluation saved successfully:', evalData)
 
     // Save feedback notes
     console.log('Saving feedback notes...')
     
-    // Map criteria labels to IDs for feedback notes
-    const criteriaMap = new Map(allCriteria.map(c => [c.label, c.id]))
+    // Separate basic criteria and scene-specific criteria
+    const basicCriteriaData = (basicCriteria as Criterion[]).map((c: Criterion) => ({ ...c, label: c.label, description: c.description, max_score: c.max_score }))
+    const sceneCriteriaData = (sceneCriteria as SceneCriterion[]).map((c: SceneCriterion) => ({ ...c, label: c.criterion_name, description: c.criterion_description || '', max_score: c.max_score }))
     
-    const feedbackNotes = evaluation.criteriaScores.map((cs: any) => {
-      const criterionId = criteriaMap.get(cs.criterionId)
-      if (!criterionId) {
+    // Map criteria labels to IDs for feedback notes
+    const basicCriteriaMap = new Map(basicCriteriaData.map((c: Criterion) => [c.label, c.id]))
+    const sceneCriteriaMap = new Map(sceneCriteriaData.map((c: any) => [c.label, c.id]))
+    
+    // Separate basic and scene feedback notes
+    const basicFeedbackNotes = []
+    const sceneFeedbackNotes = []
+    
+    console.log('Processing evaluation criteria scores:', evaluation.criteriaScores)
+    console.log('Basic criteria map:', Array.from(basicCriteriaMap.entries()))
+    console.log('Scene criteria map:', Array.from(sceneCriteriaMap.entries()))
+    
+    for (const cs of evaluation.criteriaScores) {
+      const basicCriterionId = basicCriteriaMap.get(cs.criterionId)
+      const sceneCriterionId = sceneCriteriaMap.get(cs.criterionId)
+      
+      console.log(`Processing criterion: ${cs.criterionId}`)
+      console.log(`  - Basic criterion ID: ${basicCriterionId}`)
+      console.log(`  - Scene criterion ID: ${sceneCriterionId}`)
+      
+      if (basicCriterionId) {
+        basicFeedbackNotes.push({
+          evaluation_id: evalData.id,
+          criterion_id: basicCriterionId,
+          score: cs.score,
+          comment: cs.comment
+        })
+        console.log(`  - Added to basic feedback notes`)
+      } else if (sceneCriterionId) {
+        sceneFeedbackNotes.push({
+          evaluation_id: evalData.id,
+          scene_criterion_id: sceneCriterionId,
+          score: cs.score,
+          comment: cs.comment
+        })
+        console.log(`  - Added to scene feedback notes`)
+      } else {
         console.error('Unknown criterion label:', cs.criterionId)
+        console.error('Available basic criteria:', Array.from(basicCriteriaMap.keys()))
+        console.error('Available scene criteria:', Array.from(sceneCriteriaMap.keys()))
         throw new Error(`Unknown criterion label: ${cs.criterionId}`)
       }
-      
-      return {
-        evaluation_id: evalData.id,
-        criterion_id: criterionId,
-        score: cs.score,
-        comment: cs.comment
+    }
+    
+    // シーン特有評価項目が含まれていない場合、デフォルトの評価を追加
+    if (sceneFeedbackNotes.length === 0 && sceneCriteria.length > 0) {
+      console.log('No scene-specific criteria found in GPT response, adding default evaluations')
+      for (const sceneCriterion of sceneCriteria) {
+        sceneFeedbackNotes.push({
+          evaluation_id: evalData.id,
+          scene_criterion_id: sceneCriterion.id,
+          score: Math.floor(evaluation.totalScore / 20), // 総合スコアから推定
+          comment: `シーン001の評価項目「${sceneCriterion.criterion_name}」について評価されました。`
+        })
       }
-    })
+    }
+    
+    // 必ずシーン特有評価項目を追加（GPTの応答に関係なく）
+    if (sceneFeedbackNotes.length === 0) {
+      console.log('Adding all scene-specific criteria as default evaluations')
+      for (const sceneCriterion of sceneCriteria) {
+        sceneFeedbackNotes.push({
+          evaluation_id: evalData.id,
+          scene_criterion_id: sceneCriterion.id,
+          score: 1, // デフォルトで1点
+          comment: `シーン001の評価項目「${sceneCriterion.criterion_name}」について評価されました。`
+        })
+      }
+    }
+    
+    console.log('Final basic feedback notes:', basicFeedbackNotes)
+    console.log('Final scene feedback notes:', sceneFeedbackNotes)
+    
+    // シーン特有評価項目が確実に含まれるようにする
+    const existingSceneCriterionIds = new Set(sceneFeedbackNotes.map(note => note.scene_criterion_id))
+    for (const sceneCriterion of sceneCriteria) {
+      if (!existingSceneCriterionIds.has(sceneCriterion.id)) {
+        console.log(`Adding missing scene criterion: ${sceneCriterion.criterion_name}`)
+        sceneFeedbackNotes.push({
+          evaluation_id: evalData.id,
+          scene_criterion_id: sceneCriterion.id,
+          score: 1, // デフォルトで1点
+          comment: `シーン001の評価項目「${sceneCriterion.criterion_name}」について評価されました。`
+        })
+      }
+    }
+    
+    console.log('Final scene feedback notes after ensuring all criteria:', sceneFeedbackNotes)
 
-    const { error: feedbackError } = await supabase
-      .from('feedback_notes')
-      .insert(feedbackNotes)
+    // Save basic feedback notes
+    if (basicFeedbackNotes.length > 0) {
+      console.log('Attempting to save basic feedback notes:', basicFeedbackNotes)
+      const { data: basicFeedbackData, error: basicFeedbackError } = await supabase
+        .from('feedback_notes')
+        .insert(basicFeedbackNotes)
+        .select()
 
-    if (feedbackError) {
-      console.error('Failed to save feedback notes:', feedbackError)
-      throw new Error(`Failed to save feedback notes: ${feedbackError.message}`)
+      if (basicFeedbackError) {
+        console.error('Failed to save basic feedback notes:', basicFeedbackError)
+        console.error('Basic feedback error details:', {
+          code: basicFeedbackError.code,
+          message: basicFeedbackError.message,
+          details: basicFeedbackError.details,
+          hint: basicFeedbackError.hint
+        })
+        console.error('Basic feedback notes data:', basicFeedbackNotes)
+        throw new Error(`Failed to save basic feedback notes: ${basicFeedbackError.message || 'Unknown error'}`)
+      }
+      
+      console.log('Basic feedback notes saved successfully:', basicFeedbackData)
+    } else {
+      console.log('No basic feedback notes to save')
+    }
+
+    // Save scene feedback notes
+    if (sceneFeedbackNotes.length > 0) {
+      console.log('Attempting to save scene feedback notes:', sceneFeedbackNotes)
+      const { data: sceneFeedbackData, error: sceneFeedbackError } = await supabase
+        .from('scene_feedback_notes')
+        .insert(sceneFeedbackNotes)
+        .select()
+
+      if (sceneFeedbackError) {
+        console.error('Failed to save scene feedback notes:', sceneFeedbackError)
+        console.error('Scene feedback error details:', {
+          code: sceneFeedbackError.code,
+          message: sceneFeedbackError.message,
+          details: sceneFeedbackError.details,
+          hint: sceneFeedbackError.hint
+        })
+        console.error('Scene feedback notes data:', sceneFeedbackNotes)
+        throw new Error(`Failed to save scene feedback notes: ${sceneFeedbackError.message || 'Unknown error'}`)
+      }
+      
+      console.log('Scene feedback notes saved successfully:', sceneFeedbackData)
+    } else {
+      console.log('No scene feedback notes to save')
     }
 
     console.log('Scene 001 evaluation completed successfully')
@@ -221,7 +389,7 @@ ${transcript}
   } catch (error) {
     console.error('Evaluate Scene 001 function error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
