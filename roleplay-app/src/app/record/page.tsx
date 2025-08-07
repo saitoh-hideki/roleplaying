@@ -547,30 +547,32 @@ export default function RecordPage() {
               </p>
               <div className="h-80 overflow-y-auto border border-slate-600 rounded-lg p-4 bg-slate-700">
                 {realtimeEnabled ? (
-                  realtimeTranscript ? (
+                  (realtimeTranscript || transcriptionHistory.length > 0) ? (
                     <div className="space-y-4">
                       {/* リアルタイム文字起こしの表示 */}
-                      <div className="bg-slate-600 rounded-xl p-4 shadow-sm border border-indigo-500/30">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium text-slate-200">Latest Transcription Result</span>
-                          {isRecording && (
-                            <div className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-slate-400">Recording</span>
-                            </div>
-                          )}
+                      {realtimeTranscript && (
+                        <div className="bg-slate-600 rounded-xl p-4 shadow-sm border border-indigo-500/30">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-slate-200">Latest Transcription Result</span>
+                            {isRecording && (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs text-slate-400">Recording</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-slate-100 leading-relaxed whitespace-pre-wrap bg-slate-500 p-3 rounded-lg border-l-4 border-indigo-400">
+                            {realtimeTranscript}
+                          </div>
+                          <div className="mt-2 text-xs text-slate-400">
+                            Updated: {new Date().toLocaleTimeString()}
+                          </div>
                         </div>
-                        <div className="text-slate-100 leading-relaxed whitespace-pre-wrap bg-slate-500 p-3 rounded-lg border-l-4 border-indigo-400">
-                          {realtimeTranscript}
-                        </div>
-                        <div className="mt-2 text-xs text-slate-400">
-                          Updated: {new Date().toLocaleTimeString()}
-                        </div>
-                      </div>
+                      )}
                       
                       {/* 文字起こし履歴（折りたたみ可能） */}
-                      {transcriptionHistory.length > 1 && (
-                        <details className="bg-slate-600 rounded-xl shadow-sm border border-slate-500">
+                      {transcriptionHistory.length > 0 && (
+                        <details className="bg-slate-600 rounded-xl shadow-sm border border-slate-500" open>
                           <summary className="p-3 cursor-pointer hover:bg-slate-500 rounded-xl flex items-center justify-between">
                             <span className="text-sm font-medium text-slate-200">
                               Transcription History ({transcriptionHistory.length} times)
@@ -602,6 +604,7 @@ export default function RecordPage() {
                           <div className="text-center">
                             <p className="font-medium">Transcribing...</p>
                             <p className="text-sm">Recognizing speech</p>
+                            <p className="text-xs text-slate-500 mt-2">If this continues, check API quota</p>
                           </div>
                         </>
                       ) : (
@@ -612,6 +615,7 @@ export default function RecordPage() {
                           <div className="text-center">
                             <p className="font-medium">Please start recording</p>
                             <p className="text-sm">Real-time transcription will be displayed</p>
+                            <p className="text-xs text-slate-500 mt-2">Real-time mode is enabled</p>
                           </div>
                         </>
                       )}

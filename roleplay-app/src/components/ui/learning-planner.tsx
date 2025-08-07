@@ -35,12 +35,11 @@ export function LearningPlanner() {
 
   const fetchData = async () => {
     try {
-      // Fetch reflection notes
+      // Fetch reflection notes - remove limit to get all notes
       const { data: notesData, error: notesError } = await supabase
         .from('reflection_notes')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10)
 
       if (notesError) {
         console.log('Notes table might not exist yet:', notesError.message)
@@ -49,7 +48,7 @@ export function LearningPlanner() {
         console.log('Notes data:', notesData)
       }
 
-      // Fetch practice plans with scene titles
+      // Fetch practice plans with scene titles - remove limit to get all plans
       const { data: plansData, error: plansError } = await supabase
         .from('practice_plans')
         .select(`
@@ -60,7 +59,6 @@ export function LearningPlanner() {
           scenes (title)
         `)
         .order('date', { ascending: true })
-        .limit(5)
 
       if (plansError) {
         console.log('Practice plans table might not exist yet:', plansError.message)
@@ -94,8 +92,6 @@ export function LearningPlanner() {
       setLoading(false)
     }
   }
-
-
 
   const saveNote = async () => {
     if (!newNote.trim()) return
@@ -237,11 +233,13 @@ export function LearningPlanner() {
             </Button>
           </div>
 
-          {/* Recent Notes */}
+          {/* Recent Notes - Scrollable container */}
           <div className="flex-1">
-            <h4 className="text-sm font-medium text-slate-300 mb-3">Recent Notes</h4>
-            <div className="space-y-3">
-              {notes.map((note) => (
+            <h4 className="text-sm font-medium text-slate-300 mb-3">
+              Recent Notes ({notes.length})
+            </h4>
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
+              {notes.slice(0, 10).map((note) => (
                 <div key={note.id} className="bg-slate-700 p-3 rounded border border-slate-600">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs text-slate-400">
@@ -261,6 +259,11 @@ export function LearningPlanner() {
               ))}
               {notes.length === 0 && (
                 <p className="text-slate-500 text-sm italic">No notes yet. Start reflecting on your practice sessions!</p>
+              )}
+              {notes.length > 10 && (
+                <p className="text-slate-400 text-xs italic text-center py-2">
+                  Scroll to see {notes.length - 10} more notes...
+                </p>
               )}
             </div>
           </div>
@@ -342,10 +345,12 @@ export function LearningPlanner() {
             </Button>
           </div>
 
-          {/* Upcoming Plans */}
+          {/* All Plans - Scrollable container */}
           <div>
-            <h4 className="text-sm font-medium text-slate-300 mb-3">Upcoming Plans</h4>
-            <div className="space-y-2">
+            <h4 className="text-sm font-medium text-slate-300 mb-3">
+              Upcoming Plans ({plans.length})
+            </h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
               {plans.slice(0, 3).map((plan) => (
                 <div key={plan.id} className="bg-slate-700 p-3 rounded border border-slate-600">
                   <div className="flex justify-between items-start">
@@ -374,6 +379,11 @@ export function LearningPlanner() {
               ))}
               {plans.length === 0 && (
                 <p className="text-slate-500 text-sm italic">No upcoming plans. Schedule your next practice session!</p>
+              )}
+              {plans.length > 3 && (
+                <p className="text-slate-400 text-xs italic text-center py-2">
+                  Scroll to see {plans.length - 3} more plans...
+                </p>
               )}
             </div>
           </div>
