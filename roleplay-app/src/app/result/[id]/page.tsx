@@ -18,6 +18,7 @@ interface ResultData {
     id: string
     created_at: string
     transcript: string
+    situation_id?: string
     scenario: {
       title: string
       description: string
@@ -36,6 +37,7 @@ interface ResultData {
       label: string
       description: string
       max_score: number
+      type?: string
     }
   }[]
 }
@@ -65,6 +67,7 @@ export default function ResultPage() {
           id,
           created_at,
           transcript,
+          situation_id,
           scenarios (title, description)
         `)
         .eq('id', id)
@@ -140,7 +143,8 @@ export default function ResultPage() {
           criterion: { 
             label: (fn.evaluation_criteria as any)?.label || '', 
             description: (fn.evaluation_criteria as any)?.description || '', 
-            max_score: (fn.evaluation_criteria as any)?.max_score || 0 
+            max_score: (fn.evaluation_criteria as any)?.max_score || 0,
+            type: 'basic' // 一時的にすべてbasicとして扱う
           }
         }))
       })
@@ -169,6 +173,10 @@ export default function ResultPage() {
     if (percentage >= 60) return 'bg-yellow-100 border-yellow-200'
     return 'bg-red-100 border-red-200'
   }
+
+  // 基本評価とシーン評価を分離
+  const basicEvaluations = data?.feedbackNotes.filter(note => note.criterion.type === 'basic') || []
+  const sceneEvaluations = data?.feedbackNotes.filter(note => note.criterion.type === 'scene') || []
 
   if (loading) {
     return (
@@ -207,8 +215,8 @@ export default function ResultPage() {
     )
   }
 
-  // チャート用データの準備
-  const chartData = data.feedbackNotes.map(note => ({
+  // チャート用データの準備（基本評価のみ）
+  const chartData = basicEvaluations.map(note => ({
     label: note.criterion.label,
     score: note.score,
     maxScore: note.criterion.max_score
@@ -270,13 +278,16 @@ export default function ResultPage() {
 
         {/* 2カラムレイアウト */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* 左カラム: 項目別評価 */}
+          {/* 左カラム: 基本評価 */}
           <Card className="bg-slate-800 border-slate-700 text-slate-50">
             <CardHeader>
-              <CardTitle className="text-slate-50">項目別評価</CardTitle>
+              <CardTitle className="text-slate-50">基本評価項目</CardTitle>
+              <CardDescription className="text-slate-400">
+                すべてのシーン共通の評価観点
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {data.feedbackNotes.map((note) => (
+              {basicEvaluations.map((note) => (
                 <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.criterion.max_score)}`}>
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-semibold text-slate-800">{note.criterion.label}</h4>
@@ -293,18 +304,49 @@ export default function ResultPage() {
             </CardContent>
           </Card>
 
-          {/* 右カラム: レーダーチャート */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
-            <CardHeader>
-              <CardTitle className="text-slate-50">評価チャート</CardTitle>
-              <CardDescription className="text-slate-400">
-                5つの評価項目を視覚化
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadarChart data={chartData} />
-            </CardContent>
-          </Card>
+          {/* 右カラム: レーダーチャート + シーン評価 */}
+          <div className="space-y-6">
+            {/* レーダーチャート */}
+            <Card className="bg-slate-800 border-slate-700 text-slate-50">
+              <CardHeader>
+                <CardTitle className="text-slate-50">基本評価チャート</CardTitle>
+                <CardDescription className="text-slate-400">
+                  共通評価項目の視覚化
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadarChart data={chartData} />
+              </CardContent>
+            </Card>
+
+            {/* シーン特有評価 */}
+            {sceneEvaluations.length > 0 && (
+              <Card className="bg-slate-800 border-slate-700 text-slate-50">
+                <CardHeader>
+                  <CardTitle className="text-slate-50">シーン特有評価</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    このシーン独自の評価観点
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {sceneEvaluations.map((note) => (
+                    <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.criterion.max_score)}`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-slate-800">{note.criterion.label}</h4>
+                        <span className={`text-lg font-bold ${getScoreColor(note.score, note.criterion.max_score)}`}>
+                          {note.score} / {note.criterion.max_score}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600 mb-3">{note.criterion.description}</p>
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-sm text-slate-700">{note.comment}</p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
 
         {/* 振り返りチャット */}

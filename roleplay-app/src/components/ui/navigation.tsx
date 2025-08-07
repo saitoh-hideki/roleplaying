@@ -35,7 +35,7 @@ export function Navigation() {
     { href: "/scenes", label: "シーン", icon: Theater },
     { href: "/record", label: "録音", icon: Mic },
     { href: "/history", label: "履歴", icon: History },
-    { href: "/admin/scenarios", label: "管理", icon: Settings },
+    { href: "/admin/scenarios", label: "シーン管理", icon: Settings },
   ];
 
   return (

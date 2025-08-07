@@ -27,11 +27,23 @@ export interface Scene {
   updated_at: string
 }
 
+export interface SceneEvaluationCriterion {
+  id: string
+  scene_id: string
+  criterion_name: string
+  criterion_description?: string
+  max_score: number
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 export interface EvaluationCriterion {
   id: string
   label: string
   description: string
   max_score: number
+  type: 'basic' | 'scene'
   created_at: string
   updated_at: string
 }
@@ -97,6 +109,11 @@ export type Database = {
         Row: Scene
         Insert: Omit<Scene, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Scene, 'id' | 'created_at' | 'updated_at'>>
+      }
+      scene_evaluation_criteria: {
+        Row: SceneEvaluationCriterion
+        Insert: Omit<SceneEvaluationCriterion, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<SceneEvaluationCriterion, 'id' | 'created_at' | 'updated_at'>>
       }
       evaluation_criteria: {
         Row: EvaluationCriterion

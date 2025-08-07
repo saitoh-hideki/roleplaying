@@ -51,61 +51,81 @@ serve(async (req) => {
     console.log('Creating Supabase client with URL:', supabaseUrl)
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Fetch evaluation criteria
-    console.log('Fetching criteria...')
-    const { data: criteria, error: criteriaError } = await supabase
+    // Fetch basic evaluation criteria (共通評価項目)
+    console.log('Fetching basic criteria...')
+    const { data: basicCriteria, error: basicCriteriaError } = await supabase
       .from('evaluation_criteria')
       .select('*')
+      .eq('type', 'basic')
+      .order('created_at')
 
-    if (criteriaError) {
-      console.error('Criteria fetch error:', criteriaError)
-      throw new Error(`Failed to fetch criteria: ${criteriaError.message}`)
+    if (basicCriteriaError) {
+      console.error('Basic criteria fetch error:', basicCriteriaError)
+      throw new Error(`Failed to fetch basic criteria: ${basicCriteriaError.message}`)
     }
     
-    console.log('Fetched criteria count:', criteria.length)
+    console.log('Fetched basic criteria count:', basicCriteria.length)
 
-    // シーン001専用の評価プロンプト
-    const systemPrompt = `あなたは接客研修の専門コーチです。特に「パソコンが調子悪くて初めてお客様が来店」というシーンでの接客を評価します。
+    // Fetch scene-specific evaluation criteria
+    console.log('Fetching scene-specific criteria...')
+    const { data: sceneCriteria, error: sceneCriteriaError } = await supabase
+      .from('scene_evaluation_criteria')
+      .select('*')
+      .eq('scene_id', 'scene_001')
+      .order('sort_order')
 
-このシーンでの重要な評価ポイント:
-1. 初回来店客への丁寧な対応
-2. 困りごと（パソコンの不調）への共感と理解
-3. 技術的な問題への適切な対応提案
-4. 非会員への入会促進の自然な提案
-5. 専門知識を活かした信頼感のある対応
+    if (sceneCriteriaError) {
+      console.error('Scene criteria fetch error:', sceneCriteriaError)
+      throw new Error(`Failed to fetch scene criteria: ${sceneCriteriaError.message}`)
+    }
+    
+    console.log('Fetched scene criteria count:', sceneCriteria.length)
 
-評価項目:
-${criteria.map(c => `- ${c.label}: ${c.description} (最大${c.max_score}点)`).join('\n')}
+    // Combine all criteria for evaluation
+    const allCriteria = [
+      ...basicCriteria.map(c => ({ ...c, label: c.label, description: c.description, max_score: c.max_score })),
+      ...sceneCriteria.map(c => ({ ...c, label: c.criterion_name, description: c.criterion_description || '', max_score: c.max_score }))
+    ]
 
-評価は以下のJSON形式で返してください:
+    console.log('Total criteria count:', allCriteria.length)
+
+    // Create evaluation prompt
+    const systemPrompt = `あなたは接客ロールプレイの評価専門家です。以下の評価基準に基づいて、接客対応を客観的かつ詳細に評価してください。
+
+評価の際は以下の点に注意してください：
+- 各項目を1-5点で評価（1: 改善が必要、2: やや不十分、3: 普通、4: 良好、5: 優秀）
+- 具体的な改善点を含めた建設的なフィードバックを提供
+- 総合評価は100点満点で算出（各項目の平均点 × 20）
+- 評価結果は必ずJSON形式で返す
+
+評価項目：
+${allCriteria.map((criterion, index) => `${index + 1}. ${criterion.label}: ${criterion.description}`).join('\n')}
+
+評価結果は以下のJSON形式で返してください：
 {
-  "totalScore": 総合点数(100点満点),
-  "summaryComment": "総括コメント（このシーン特有の改善点と良かった点を含む）",
+  "totalScore": 総合点（1-100）,
+  "summaryComment": "総合的な評価コメント",
   "criteriaScores": [
     {
-      "criterionId": "評価項目ID",
-      "score": 点数,
-      "comment": "このシーン特有の具体的なアドバイス"
+      "criterionId": "評価項目名",
+      "score": 点数（1-5）,
+      "comment": "具体的なフィードバック"
     }
   ]
-}
+}`
 
-必ず有効なJSON形式で返してください。`
+    const userPrompt = `以下の接客ロールプレイ内容を評価してください：
 
-    const userPrompt = `シーン: パソコンが調子悪くて初めてお客様が来店
-
-状況説明:
-- 非会員の初回来店
-- パソコンの不調で困っている
-- 技術的な問題への対応が必要
-- 入会促進の機会でもある
-
-接客内容:
+【ロールプレイ内容】
 ${transcript}
 
-上記の接客内容を、このシーン特有の観点から評価してください。特に初回来店客への対応、技術的問題への理解、適切な解決策の提案、自然な入会促進について重点的に評価してください。`
+【シーン情報】
+シーン001: パソコンが調子悪くて初めてお客様が来店
+- 非会員の初回来店、困りごとベースの接客練習
+- 技術的な問題解決と信頼関係構築が重要
 
-    console.log('Calling GPT-4o API...')
+上記の評価基準に基づいて、詳細な評価を行ってください。`
+
     // Call GPT-4o API
     const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -163,7 +183,7 @@ ${transcript}
     console.log('Saving feedback notes...')
     
     // Map criteria labels to IDs for feedback notes
-    const criteriaMap = new Map(criteria.map(c => [c.label, c.id]))
+    const criteriaMap = new Map(allCriteria.map(c => [c.label, c.id]))
     
     const feedbackNotes = evaluation.criteriaScores.map((cs: any) => {
       const criterionId = criteriaMap.get(cs.criterionId)

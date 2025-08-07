@@ -34,6 +34,7 @@ export default function RecordPage() {
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const transcriptionIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const recentRecordingsRef = useRef<{ refresh: () => void }>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -353,6 +354,11 @@ export default function RecordPage() {
 
       const { evaluationId } = await evaluateResponse.json()
 
+      // 最新録音リストを更新
+      if (recentRecordingsRef.current) {
+        recentRecordingsRef.current.refresh()
+      }
+
       router.push(`/result/${recording.id}`)
     } catch (error) {
       console.error('Error processing recording:', error)
@@ -660,7 +666,7 @@ export default function RecordPage() {
 
         {/* 下部: 最新録音 */}
         <div className="grid grid-cols-1 gap-6">
-          <RecentRecordings />
+          <RecentRecordings ref={recentRecordingsRef} />
         </div>
       </div>
     </div>

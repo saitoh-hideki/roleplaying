@@ -4,18 +4,39 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Edit, Trash2 } from 'lucide-react'
-import type { Scenario, Manual } from '@/types/database'
+import { Plus, Edit, Trash2, Eye, X } from 'lucide-react'
+import type { Scene, SceneEvaluationCriterion } from '@/types/database'
+import { Switch } from '@/components/ui/switch'
+import type { EvaluationCriterion } from '@/types/database'
 
-export default function AdminScenariosPage() {
-  const [scenarios, setScenarios] = useState<Scenario[]>([])
-  const [manuals, setManuals] = useState<Manual[]>([])
+interface FormData {
+  id: string
+  title: string
+  description: string
+  edge_function: string
+  icon: string
+  evaluation_criteria: {
+    criterion_name: string
+    criterion_description: string
+    max_score: number
+  }[]
+  basic_criteria_enabled: boolean
+}
+
+export default function AdminScenesPage() {
+  const [scenes, setScenes] = useState<Scene[]>([])
+  const [evaluationCriteria, setEvaluationCriteria] = useState<SceneEvaluationCriterion[]>([])
+  const [basicCriteria, setBasicCriteria] = useState<EvaluationCriterion[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
+    id: '',
     title: '',
     description: '',
-    related_manual_id: ''
+    edge_function: '',
+    icon: '📋',
+    evaluation_criteria: [{ criterion_name: '', criterion_description: '', max_score: 5 }],
+    basic_criteria_enabled: true
   })
   
   const supabase = createClient()
@@ -26,16 +47,20 @@ export default function AdminScenariosPage() {
 
   const fetchData = async () => {
     try {
-      const [scenariosResult, manualsResult] = await Promise.all([
-        supabase.from('scenarios').select('*').order('created_at', { ascending: false }),
-        supabase.from('manuals').select('*').order('title')
+      const [scenesResult, criteriaResult, basicCriteriaResult] = await Promise.all([
+        supabase.from('scenes').select('*').order('created_at', { ascending: false }),
+        supabase.from('scene_evaluation_criteria').select('*').order('sort_order'),
+        supabase.from('evaluation_criteria').select('*').eq('type', 'basic').order('created_at')
       ])
 
-      if (!scenariosResult.error && scenariosResult.data) {
-        setScenarios(scenariosResult.data)
+      if (!scenesResult.error && scenesResult.data) {
+        setScenes(scenesResult.data)
       }
-      if (!manualsResult.error && manualsResult.data) {
-        setManuals(manualsResult.data)
+      if (!criteriaResult.error && criteriaResult.data) {
+        setEvaluationCriteria(criteriaResult.data)
+      }
+      if (!basicCriteriaResult.error && basicCriteriaResult.data) {
+        setBasicCriteria(basicCriteriaResult.data)
       }
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -44,48 +69,126 @@ export default function AdminScenariosPage() {
     }
   }
 
+  const generateSceneId = () => {
+    const existingIds = scenes.map(scene => scene.id)
+    let counter = 1
+    let newId = `scene_${counter.toString().padStart(3, '0')}`
+    
+    while (existingIds.includes(newId)) {
+      counter++
+      newId = `scene_${counter.toString().padStart(3, '0')}`
+    }
+    
+    return newId
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     try {
       if (editingId) {
-        const { error } = await supabase
-          .from('scenarios')
+        // Update existing scene
+        const { error: sceneError } = await supabase
+          .from('scenes')
           .update({
             title: formData.title,
             description: formData.description,
-            related_manual_id: formData.related_manual_id || null
+            edge_function: formData.edge_function,
+            icon: formData.icon
           })
           .eq('id', editingId)
 
-        if (error) throw error
+        if (sceneError) throw sceneError
+
+        // Delete existing criteria and insert new ones
+        await supabase
+          .from('scene_evaluation_criteria')
+          .delete()
+          .eq('scene_id', editingId)
+
+        if (formData.evaluation_criteria.length > 0) {
+          const criteriaToInsert = formData.evaluation_criteria
+            .filter(c => c.criterion_name.trim() !== '')
+            .map((criterion, index) => ({
+              scene_id: editingId,
+              criterion_name: criterion.criterion_name,
+              criterion_description: criterion.criterion_description,
+              max_score: criterion.max_score,
+              sort_order: index + 1
+            }))
+
+          if (criteriaToInsert.length > 0) {
+            const { error: criteriaError } = await supabase
+              .from('scene_evaluation_criteria')
+              .insert(criteriaToInsert)
+
+            if (criteriaError) throw criteriaError
+          }
+        }
       } else {
-        const { error } = await supabase
-          .from('scenarios')
+        // Create new scene
+        const newSceneId = formData.id || generateSceneId()
+        
+        const { error: sceneError } = await supabase
+          .from('scenes')
           .insert({
+            id: newSceneId,
             title: formData.title,
             description: formData.description,
-            related_manual_id: formData.related_manual_id || null
+            edge_function: formData.edge_function,
+            icon: formData.icon
           })
 
-        if (error) throw error
+        if (sceneError) throw sceneError
+
+        // Insert evaluation criteria
+        if (formData.evaluation_criteria.length > 0) {
+          const criteriaToInsert = formData.evaluation_criteria
+            .filter(c => c.criterion_name.trim() !== '')
+            .map((criterion, index) => ({
+              scene_id: newSceneId,
+              criterion_name: criterion.criterion_name,
+              criterion_description: criterion.criterion_description,
+              max_score: criterion.max_score,
+              sort_order: index + 1
+            }))
+
+          if (criteriaToInsert.length > 0) {
+            const { error: criteriaError } = await supabase
+              .from('scene_evaluation_criteria')
+              .insert(criteriaToInsert)
+
+            if (criteriaError) throw criteriaError
+          }
+        }
       }
 
-      setFormData({ title: '', description: '', related_manual_id: '' })
-      setEditingId(null)
+      resetForm()
       fetchData()
     } catch (error) {
-      console.error('Error saving scenario:', error)
+      console.error('Error saving scene:', error)
       alert('保存中にエラーが発生しました')
     }
   }
 
-  const handleEdit = (scenario: Scenario) => {
-    setEditingId(scenario.id)
+  const handleEdit = (scene: Scene) => {
+    const sceneCriteria = evaluationCriteria.filter(c => c.scene_id === scene.id)
+    
+    setEditingId(scene.id)
     setFormData({
-      title: scenario.title,
-      description: scenario.description,
-      related_manual_id: scenario.related_manual_id || ''
+      id: scene.id,
+      title: scene.title,
+      description: scene.description,
+      edge_function: scene.edge_function,
+      icon: scene.icon || '📋',
+      evaluation_criteria: sceneCriteria.length > 0 
+        ? sceneCriteria.map(c => ({
+            criterion_name: c.criterion_name,
+            criterion_description: c.criterion_description || '',
+            max_score: c.max_score
+          }))
+        : [{ criterion_name: '', criterion_description: '', max_score: 5 }],
+      basic_criteria_enabled: true
     })
   }
 
@@ -94,79 +197,253 @@ export default function AdminScenariosPage() {
     
     try {
       const { error } = await supabase
-        .from('scenarios')
+        .from('scenes')
         .delete()
         .eq('id', id)
 
       if (error) throw error
       fetchData()
     } catch (error) {
-      console.error('Error deleting scenario:', error)
+      console.error('Error deleting scene:', error)
       alert('削除中にエラーが発生しました')
     }
   }
 
   const handleCancel = () => {
+    resetForm()
+  }
+
+  const resetForm = () => {
     setEditingId(null)
-    setFormData({ title: '', description: '', related_manual_id: '' })
+    setFormData({
+      id: '',
+      title: '',
+      description: '',
+      edge_function: '',
+      icon: '📋',
+      evaluation_criteria: [{ criterion_name: '', criterion_description: '', max_score: 5 }],
+      basic_criteria_enabled: true
+    })
+  }
+
+  const addEvaluationCriterion = () => {
+    if (formData.evaluation_criteria.length < 5) {
+      setFormData({
+        ...formData,
+        evaluation_criteria: [
+          ...formData.evaluation_criteria,
+          { criterion_name: '', criterion_description: '', max_score: 5 }
+        ]
+      })
+    }
+  }
+
+  const removeEvaluationCriterion = (index: number) => {
+    if (formData.evaluation_criteria.length > 1) {
+      setFormData({
+        ...formData,
+        evaluation_criteria: formData.evaluation_criteria.filter((_, i) => i !== index)
+      })
+    }
+  }
+
+  const updateEvaluationCriterion = (index: number, field: string, value: string | number) => {
+    const updatedCriteria = [...formData.evaluation_criteria]
+    updatedCriteria[index] = { ...updatedCriteria[index], [field]: value }
+    setFormData({ ...formData, evaluation_criteria: updatedCriteria })
+  }
+
+  const getSceneCriteria = (sceneId: string) => {
+    return evaluationCriteria.filter(c => c.scene_id === sceneId)
   }
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-8 text-slate-50">シナリオ管理</h1>
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-50">シーン管理</h1>
+            <p className="text-slate-400 mt-1">ロールプレイシーンの設定と評価基準の管理</p>
+          </div>
+        </div>
 
         {/* フォーム */}
         <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-8">
           <CardHeader>
-            <CardTitle className="text-slate-50">{editingId ? 'シナリオ編集' : '新規シナリオ'}</CardTitle>
-            <CardDescription className="text-slate-400">
-              ロールプレイで使用するシナリオを管理します
-            </CardDescription>
+            <CardTitle className="text-slate-50">
+              {editingId ? 'シーン編集' : '新規シーン作成'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-200">シーンID</label>
+                  <input
+                    type="text"
+                    value={formData.id}
+                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                    placeholder="例: scene_010"
+                    className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                    required
+                    disabled={!!editingId}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-slate-200">アイコン</label>
+                  <input
+                    type="text"
+                    value={formData.icon}
+                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                    placeholder="例: 💻"
+                    className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">タイトル</label>
+                <label className="block text-sm font-medium mb-1 text-slate-200">シーンタイトル</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  placeholder="例: 初めての電話対応"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">説明</label>
+                <label className="block text-sm font-medium mb-1 text-slate-200">説明文</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  placeholder="シーン状況詳細を入力してください"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
                   rows={4}
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">関連マニュアル（任意）</label>
-                <select
-                  value={formData.related_manual_id}
-                  onChange={(e) => setFormData({ ...formData, related_manual_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
-                >
-                  <option value="">選択してください</option>
-                  {manuals.map(manual => (
-                    <option key={manual.id} value={manual.id}>
-                      {manual.title}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium mb-1 text-slate-200">GPT評価関数</label>
+                <input
+                  type="text"
+                  value={formData.edge_function}
+                  onChange={(e) => setFormData({ ...formData, edge_function: e.target.value })}
+                  placeholder="例: evaluate_scene_010"
+                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  required
+                />
               </div>
+
+              {/* 基本評価項目の有効化設定 */}
+              <div className="border border-slate-600 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-slate-200">基本評価項目</h3>
+                    <p className="text-sm text-slate-400">すべてのシーン共通の評価観点</p>
+                  </div>
+                  <Switch
+                    checked={formData.basic_criteria_enabled}
+                    onCheckedChange={(checked) => setFormData({ ...formData, basic_criteria_enabled: checked })}
+                  />
+                </div>
+                {formData.basic_criteria_enabled && (
+                  <div className="space-y-2">
+                    {basicCriteria.map((criterion) => (
+                      <div key={criterion.id} className="flex items-center justify-between p-2 bg-slate-700 rounded">
+                        <span className="text-slate-200">{criterion.label}</span>
+                        <span className="text-xs text-slate-400">基本項目</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* シーン特有評価項目 */}
+              <div className="border border-slate-600 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-slate-200">シーン特有評価項目</h3>
+                  <Button
+                    type="button"
+                    onClick={addEvaluationCriterion}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    disabled={formData.evaluation_criteria.length >= 5}
+                  >
+                    項目追加
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {formData.evaluation_criteria.map((criterion, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-700 rounded">
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-slate-200">項目名</label>
+                        <input
+                          type="text"
+                          value={criterion.criterion_name}
+                          onChange={(e) => {
+                            const newCriteria = [...formData.evaluation_criteria]
+                            newCriteria[index].criterion_name = e.target.value
+                            setFormData({ ...formData, evaluation_criteria: newCriteria })
+                          }}
+                          placeholder="例: 挨拶"
+                          className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-slate-200">説明</label>
+                        <input
+                          type="text"
+                          value={criterion.criterion_description}
+                          onChange={(e) => {
+                            const newCriteria = [...formData.evaluation_criteria]
+                            newCriteria[index].criterion_description = e.target.value
+                            setFormData({ ...formData, evaluation_criteria: newCriteria })
+                          }}
+                          placeholder="例: 適切な挨拶ができているか"
+                          className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium mb-1 text-slate-200">最大点</label>
+                          <input
+                            type="number"
+                            value={criterion.max_score}
+                            onChange={(e) => {
+                              const newCriteria = [...formData.evaluation_criteria]
+                              newCriteria[index].max_score = parseInt(e.target.value) || 5
+                              setFormData({ ...formData, evaluation_criteria: newCriteria })
+                            }}
+                            min="1"
+                            max="10"
+                            className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                        {formData.evaluation_criteria.length > 1 && (
+                          <Button
+                            type="button"
+                            onClick={() => removeEvaluationCriterion(index)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                  {editingId ? '更新' : '追加'}
+                  {editingId ? '更新' : '作成'}
                 </Button>
                 {editingId && (
-                  <Button type="button" variant="outline" onClick={handleCancel} className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-slate-50">
+                  <Button type="button" onClick={handleCancel} className="bg-slate-600 hover:bg-slate-700 text-white">
                     キャンセル
                   </Button>
                 )}
@@ -175,60 +452,63 @@ export default function AdminScenariosPage() {
           </CardContent>
         </Card>
 
-        {/* シナリオ一覧 */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50">
-          <CardHeader>
-            <CardTitle className="text-slate-50">シナリオ一覧</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="text-slate-400 mt-4">読み込み中...</p>
-              </div>
-            ) : scenarios.length > 0 ? (
-              <div className="space-y-4">
-                {scenarios.map(scenario => (
-                  <div key={scenario.id} className="border border-slate-600 p-4 rounded-lg bg-slate-700">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-slate-50">{scenario.title}</h3>
-                        <p className="text-slate-300 mt-1">{scenario.description}</p>
-                        {scenario.related_manual_id && (
-                          <p className="text-sm text-slate-400 mt-2">
-                            関連マニュアル: {manuals.find(m => m.id === scenario.related_manual_id)?.title}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(scenario)}
-                          className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(scenario.id)}
-                          className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+        {/* シーン一覧 */}
+        <div className="space-y-4">
+          {scenes.map(scene => {
+            const sceneCriteria = evaluationCriteria.filter(c => c.scene_id === scene.id)
+            
+            return (
+              <Card key={scene.id} className="bg-slate-800 border-slate-700 text-slate-50">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{scene.icon}</span>
+                      <h3 className="font-semibold text-lg text-slate-50">{scene.title}</h3>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(scene)}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(scene.id)}
+                        className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-400 text-center py-8">
-                まだシナリオがありません
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                  
+                  <p className="text-slate-300 text-sm mb-3">{scene.description}</p>
+                  
+                  <div className="text-xs text-slate-400 mb-3">
+                    <span className="font-medium">評価関数:</span> {scene.edge_function}
+                  </div>
+
+                  {/* 評価項目の表示 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-400">基本評価項目:</span>
+                      <span className="text-xs text-slate-500">5項目</span>
+                    </div>
+                    {sceneCriteria.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-400">シーン特有項目:</span>
+                        <span className="text-xs text-slate-500">{sceneCriteria.length}項目</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

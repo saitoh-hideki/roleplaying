@@ -150,19 +150,42 @@ ${context.criteriaScores.map(cs => `- ${cs.label}: ${cs.score}/${cs.maxScore}点
 
     // Save reflection to database
     console.log('Saving reflection to database...')
-    const { data: reflectionData, error: reflectionError } = await supabase
-      .from('feedback_reflections')
-      .insert({
-        evaluation_id: evaluationId,
-        user_comment: userComment,
-        ai_reply: aiReply
-      })
-      .select()
-      .single()
+    let reflectionData = null
+    let reflectionError = null
+    
+    try {
+      const { data, error } = await supabase
+        .from('feedback_reflections')
+        .insert({
+          evaluation_id: evaluationId,
+          user_comment: userComment,
+          ai_reply: aiReply
+        })
+        .select()
+        .single()
+      
+      reflectionData = data
+      reflectionError = error
+    } catch (error) {
+      console.error('Failed to save reflection to database:', error)
+      // データベース保存に失敗しても、AIの応答は返す
+      reflectionError = error
+    }
 
     if (reflectionError) {
       console.error('Failed to save reflection:', reflectionError)
-      throw new Error(`Failed to save reflection: ${reflectionError.message}`)
+      // データベース保存に失敗しても、AIの応答は返す
+      console.log('Returning AI response without saving to database')
+      return new Response(
+        JSON.stringify({ 
+          id: null,
+          userComment: userComment,
+          aiReply: aiReply,
+          createdAt: new Date().toISOString(),
+          note: 'Response saved locally only'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
     }
 
     console.log('Reflection chat completed successfully')
