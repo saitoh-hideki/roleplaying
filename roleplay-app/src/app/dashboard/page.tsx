@@ -48,7 +48,7 @@ export default function DashboardPage() {
           evaluations (total_score)
         `)
         .order('created_at', { ascending: false })
-        .limit(6)
+        .limit(10)
 
       if (error) {
         console.error('Recordings fetch error:', error)
@@ -123,7 +123,7 @@ export default function DashboardPage() {
     : 0
 
   return (
-    <div className="bg-[#0f172a] py-8">
+    <div className="bg-[#0F111A] py-8">
       <div className="max-w-7xl mx-auto px-6">
         {/* ヘッダー */}
         <div className="mb-8">
@@ -137,7 +137,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <Link href="/scenes">
-              <Button className="bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-2">
+              <Button className="bg-[#7C4DFF] hover:bg-[#6b3bff] text-white flex items-center gap-2">
                 🎯 Training Scenes
               </Button>
             </Link>
@@ -146,75 +146,78 @@ export default function DashboardPage() {
 
         {/* 統計パネル（3枚の指標カード） */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-slate-800 p-5 text-white">
+          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Total Sessions</h4>
-            <p className="text-2xl font-bold text-indigo-500">{totalPracticeCount}</p>
+            <p className="text-2xl font-bold text-[#7C4DFF]">{totalPracticeCount}</p>
           </Card>
           
-          <Card className="bg-slate-800 p-5 text-white">
+          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Average Score</h4>
-            <p className="text-2xl font-bold text-indigo-500">{averageScore}</p>
+            <p className="text-2xl font-bold text-[#7C4DFF]">{averageScore}</p>
           </Card>
           
-          <Card className="bg-slate-800 p-5 text-white">
+          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Best Score</h4>
-            <p className="text-2xl font-bold text-indigo-500">{highestScore}</p>
+            <p className="text-2xl font-bold text-[#7C4DFF]">{highestScore}</p>
           </Card>
         </div>
 
         {/* メイン2カラム（履歴 + チャート） */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Roleplays */}
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-white mb-4">🕒 Recent Roleplays</h3>
-            
+            <h3 className="text-base font-semibold text-white mb-2">🕒 Recent Roleplays</h3>
             {loading ? (
               <div className="text-center py-8">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="w-8 h-8 border-2 border-[#7C4DFF] border-t-transparent rounded-full animate-spin mx-auto"></div>
                 <p className="text-slate-400 mt-4">Loading...</p>
               </div>
             ) : recentRoleplays.length > 0 ? (
-              <div className="space-y-3">
-                {recentRoleplays.map((roleplay) => (
-                  <Card key={roleplay.id} className="bg-slate-800 p-4 rounded-lg text-white flex justify-between items-center">
-                    <div>
-                      <h4 className="text-sm font-semibold">{roleplay.scenario?.title || "No Scenario"}</h4>
-                      <p className="text-xs text-slate-400">
-                        {format(new Date(roleplay.created_at), 'MMM dd, yyyy')}
-                      </p>
-                    </div>
-                    {roleplay.evaluation ? (
-                      <Link href={`/result/${roleplay.id}`}>
-                        <Button size="sm" variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white text-sm py-1.5">
-                          View Details
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href={`/record?retry=${roleplay.id}`}>
-                        <Button size="sm" variant="secondary" className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm py-1.5">
-                          ▶ Evaluate
-                        </Button>
-                      </Link>
-                    )}
-                  </Card>
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                {recentRoleplays.slice(0,7).map((roleplay) => (
+                  <Link
+                    key={roleplay.id}
+                    href={`/result/${roleplay.id}`}
+                    className="block"
+                  >
+                    <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-4 rounded-lg text-white flex justify-between items-center hover:bg-[rgba(124,77,255,0.12)] transition-colors cursor-pointer">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-slate-200">{roleplay.scenario?.title || 'No Scenario'}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {format(new Date(roleplay.created_at), 'MMM dd, yyyy')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        {roleplay.evaluation ? (
+                          <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-[#7C4DFF] border-[#7C4DFF]">
+                            {roleplay.evaluation.total_score} pts
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-slate-400 border-slate-500">
+                            未評価
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </Link>
                 ))}
-                <div className="text-right pt-2">
+                <div className="text-right pt-1">
                   <Link href="/history">
-                    <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-slate-50 text-sm py-1.5">
+                    <Button variant="outline" className="border-[#2A2E3D] text-slate-300 hover:bg-[#1A1F2B] hover:text-slate-50 text-sm py-1.5">
                       View All
                     </Button>
                   </Link>
                 </div>
               </div>
             ) : (
-              <Card className="bg-slate-800 p-6 text-center text-white">
-                <div className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-6 text-center text-white">
+                <div className="w-12 h-12 bg-[#2A2E3D] rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-6 h-6 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No roleplay sessions yet</h3>
                 <p className="text-slate-400 mb-4">Start your first roleplay to track your progress</p>
                 <Link href="/record">
-                  <Button className="bg-indigo-600 hover:bg-indigo-500 text-white">
+                  <Button className="bg-[#7C4DFF] hover:bg-[#6b3bff] text-white">
                     Start Roleplay
                   </Button>
                 </Link>
@@ -223,13 +226,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Score Trend Chart */}
-          <div className="bg-slate-800 rounded-lg p-6">
-            <h3 className="text-base font-semibold text-white mb-6">📈 Score Trend</h3>
+          <div className="bg-[#1A1F2B] border border-[#2A2E3D] rounded-lg p-6">
+            <h3 className="text-base font-semibold text-white mb-4">📈 Score Trend</h3>
             {scoreData.length > 0 ? (
-              <div className="bg-slate-700 rounded-lg p-4">
-                <ResponsiveContainer width="100%" height={220}>
+              <div className="bg-[#111827] rounded-lg p-4 h-[360px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={scoreData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2A2E3D" />
                     <XAxis 
                       dataKey="date" 
                       stroke="#9ca3af"
@@ -245,8 +248,8 @@ export default function DashboardPage() {
                     />
                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: '1px solid #374151',
+                        backgroundColor: '#0F111A',
+                        border: '1px solid #2A2E3D',
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
                         color: '#f1f5f9'
@@ -256,17 +259,17 @@ export default function DashboardPage() {
                     <Line 
                       type="monotone" 
                       dataKey="score" 
-                      stroke="#60a5fa" 
+                      stroke="#7C4DFF" 
                       strokeWidth={3}
-                      dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: '#60a5fa', strokeWidth: 2 }}
+                      dot={{ fill: '#7C4DFF', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: '#7C4DFF', strokeWidth: 2 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-[#2A2E3D] rounded-full flex items-center justify-center mx-auto mb-4">
                   <BarChart3 className="w-8 h-8 text-slate-400" />
                 </div>
                 <p className="text-slate-400 font-medium">No data available</p>
