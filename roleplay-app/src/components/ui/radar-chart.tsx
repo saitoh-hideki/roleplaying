@@ -96,10 +96,19 @@ export function RadarChart({ data, className = '', variant = 'basic' }: RadarCha
         pointLabels: {
           color: '#f8fafc',
           font: {
-            size: 13,
+            size: 11,
             weight: 'bold' as const,
           },
-          padding: 12,
+          padding: 8,
+          callback: function(value: any, index: number) {
+            // 長いラベルを短縮または折り返し
+            const label = value as string;
+            if (label.length > 8) {
+              // 8文字を超える場合は短縮
+              return label.substring(0, 8) + '...';
+            }
+            return label;
+          }
         },
       },
     },
