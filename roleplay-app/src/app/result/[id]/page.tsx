@@ -268,8 +268,8 @@ export default function ResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="container mx-auto p-6 max-w-7xl">
+      <div className="min-h-screen bg-slate-900">
+        <div className="container mx-auto p-6 max-w-[1400px]">
           <div className="text-center py-12">
             <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-slate-400 mt-4">読み込み中...</p>
@@ -281,8 +281,8 @@ export default function ResultPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="container mx-auto p-6 max-w-7xl">
+      <div className="min-h-screen bg-slate-900">
+        <div className="container mx-auto p-6 max-w-[1400px]">
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-2xl">⚠️</span>
@@ -304,8 +304,8 @@ export default function ResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="min-h-screen bg-slate-900">
+      <div className="container mx-auto px-6 py-8 max-w-[1400px]">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -357,97 +357,175 @@ export default function ResultPage() {
           </CardContent>
         </Card>
 
-        {/* 2カラムレイアウト */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* 左カラム: 基本評価 */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50">
-            <CardHeader>
-              <CardTitle className="text-slate-50">基本評価項目</CardTitle>
-              <CardDescription className="text-slate-400">
-                すべてのシーン共通の評価観点
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {basicEvaluations.map((note) => (
-                <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.criterion.max_score)}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-semibold text-slate-800">{note.criterion.label}</h4>
-                    <span className={`text-lg font-bold ${getScoreColor(note.score, note.criterion.max_score)}`}>
-                      {note.score} / {note.criterion.max_score}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-600 mb-3">{note.criterion.description}</p>
-                  <div className="bg-white p-3 rounded border">
-                    <p className="text-sm text-slate-700">{note.comment}</p>
-                  </div>
+        {/* 4分割グリッドレイアウト */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '800px' }}>
+          {/* 基本評価（左上） */}
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+            <CardHeader className="pb-4 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                  <span className="text-indigo-400 text-lg">📊</span>
                 </div>
-              ))}
+                <div>
+                  <CardTitle className="text-slate-50 text-lg">基本評価</CardTitle>
+                  <CardDescription className="text-slate-400 text-sm">
+                    接客における基本的なスキル評価
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 h-full">
+              <div className="overflow-y-auto h-[calc(100%-120px)] p-6 space-y-4">
+                {basicEvaluations.map((note, index) => {
+                  const icons = ['🗣️', '🤝', '💡', '🛠️', '🎯'];
+                  return (
+                    <div 
+                      key={note.id} 
+                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-indigo-400/30 animate-fade-in-up"
+                      style={{ 
+                        animationDelay: `${index * 100}ms`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{icons[index] || '⭐'}</span>
+                          <h4 className="font-semibold text-slate-50">{note.criterion.label}</h4>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-bold transition-all duration-300 ${
+                          note.score >= 4 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          note.score >= 3 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                          'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
+                          {note.score} / {note.criterion.max_score}
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 mb-3">{note.criterion.description}</p>
+                      <div className="bg-slate-800 p-3 rounded-lg border border-slate-600">
+                        <p className="text-sm text-slate-300">{note.comment}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
 
-          {/* 右カラム: レーダーチャート + シーン評価 */}
-          <div className="space-y-6">
-            {/* レーダーチャート */}
-            <Card className="bg-slate-800 border-slate-700 text-slate-50">
-              <CardHeader>
-                <CardTitle className="text-slate-50">基本評価チャート</CardTitle>
-                <CardDescription className="text-slate-400">
-                  共通評価項目の視覚化
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RadarChart data={chartData} />
-              </CardContent>
-            </Card>
-
-            {/* シーン特有評価 */}
-            {data.sceneFeedbackNotes.length > 0 && (
-              <Card className="bg-slate-800 border-slate-700 text-slate-50">
-                <CardHeader>
-                  <CardTitle className="text-slate-50">
+          {/* シーン特有評価（右上） */}
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+            <CardHeader className="pb-4 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+                  <span className="text-cyan-400 text-lg">🎭</span>
+                </div>
+                <div>
+                  <CardTitle className="text-slate-50 text-lg">
                     {data.scene?.title || 'シーン'}特有評価
                   </CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardDescription className="text-slate-400 text-sm">
                     {data.scene?.description || 'このシーン独自の評価観点'}
                   </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {data.sceneFeedbackNotes.map((note) => (
-                    <div key={note.id} className={`p-4 rounded-lg border ${getScoreBackgroundColor(note.score, note.scene_criterion.max_score)}`}>
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-slate-800">{note.scene_criterion.criterion_name}</h4>
-                        <span className={`text-lg font-bold ${getScoreColor(note.score, note.scene_criterion.max_score)}`}>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 h-full">
+              {data.sceneFeedbackNotes.length > 0 ? (
+                <div className="overflow-y-auto h-[calc(100%-120px)] p-6 space-y-4">
+                  {data.sceneFeedbackNotes.map((note, index) => (
+                    <div 
+                      key={note.id} 
+                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-cyan-400/30 animate-fade-in-up"
+                      style={{ 
+                        animationDelay: `${(index + basicEvaluations.length) * 100}ms`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">⭐</span>
+                          <h4 className="font-semibold text-slate-50">{note.scene_criterion.criterion_name}</h4>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-bold transition-all duration-300 ${
+                          note.score >= 4 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          note.score >= 3 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                          'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
                           {note.score} / {note.scene_criterion.max_score}
-                        </span>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-600 mb-3">{note.scene_criterion.criterion_description}</p>
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-sm text-slate-700">{note.comment}</p>
+                      <p className="text-xs text-slate-400 mb-3">{note.scene_criterion.criterion_description}</p>
+                      <div className="bg-slate-800 p-3 rounded-lg border border-slate-600">
+                        <p className="text-sm text-slate-300">{note.comment}</p>
                       </div>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[calc(100%-120px)] text-slate-400">
+                  <div className="text-center">
+                    <span className="text-4xl mb-4 block">📝</span>
+                    <p>シーン特有の評価項目がありません</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 振り返りチャット（左下） */}
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+            <CardHeader className="pb-4 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                  <span className="text-purple-400 text-lg">💬</span>
+                </div>
+                <div>
+                  <CardTitle className="text-slate-50 text-lg">振り返りチャット</CardTitle>
+                  <CardDescription className="text-slate-400 text-sm">
+                    AIとの対話で理解を深める
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 h-full">
+              <div className="h-[calc(100%-120px)]">
+                <ReflectionChat 
+                  evaluationId={data.evaluation.id}
+                  evaluationContext={{
+                    totalScore: data.evaluation.total_score,
+                    summaryComment: data.evaluation.summary_comment,
+                    criteriaScores: data.feedbackNotes.map(note => ({
+                      label: note.criterion.label,
+                      score: note.score,
+                      maxScore: note.criterion.max_score,
+                      comment: note.comment
+                    }))
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 評価チャート（右下） */}
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+            <CardHeader className="pb-4 border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                  <span className="text-emerald-400 text-lg">📈</span>
+                </div>
+                <div>
+                  <CardTitle className="text-slate-50 text-lg">スキル分析</CardTitle>
+                  <CardDescription className="text-slate-400 text-sm">
+                    各評価項目の可視化
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 h-[calc(100%-120px)] flex items-center justify-center">
+              <div className="w-full h-full">
+                <RadarChart data={chartData} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* 振り返りチャット */}
-        <div className="mb-6">
-          <ReflectionChat 
-            evaluationId={data.evaluation.id}
-            evaluationContext={{
-              totalScore: data.evaluation.total_score,
-              summaryComment: data.evaluation.summary_comment,
-              criteriaScores: data.feedbackNotes.map(note => ({
-                label: note.criterion.label,
-                score: note.score,
-                maxScore: note.criterion.max_score,
-                comment: note.comment
-              }))
-            }}
-          />
-        </div>
 
         {/* 文字起こし（折りたたみ可能） */}
         <Card className="bg-slate-800 border-slate-700 text-slate-50">

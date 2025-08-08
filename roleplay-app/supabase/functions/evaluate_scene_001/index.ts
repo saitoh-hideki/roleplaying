@@ -1,8 +1,14 @@
-// @ts-ignore - Deno environment
+// @ts-ignore
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-// @ts-ignore - Supabase Edge Functions environment
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Deno global declarations
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
