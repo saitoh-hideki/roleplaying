@@ -28,7 +28,7 @@ export function CoreSkillsChart({ data }: CoreSkillsChartProps) {
         </div>
       </CardHeader>
       <CardContent className="p-4 flex-1 flex items-center justify-center">
-        <div className="w-full h-full flex items-center justify-center" style={{ height: '75%' }}>
+        <div className="w-full h-full flex items-center justify-center">
           <RadarChart data={data} variant="basic" />
         </div>
       </CardContent>
