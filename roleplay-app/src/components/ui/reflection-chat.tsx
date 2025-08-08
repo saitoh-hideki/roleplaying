@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from './button'
-import { Card, CardContent, CardHeader, CardTitle } from './card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
 import { createClient } from '@/lib/supabase/client'
 import { Send, Bot, User } from 'lucide-react'
 
@@ -122,71 +122,78 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700 text-slate-50">
-      <CardHeader>
-        <CardTitle className="text-slate-50 flex items-center gap-2">
-          <Bot className="h-5 w-5 text-indigo-400" />
-          振り返りチャット
-        </CardTitle>
+    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col">
+      <CardHeader className="pb-4 border-b border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+            <span className="text-purple-400 text-lg">💬</span>
+          </div>
+          <div>
+            <CardTitle className="text-slate-50 text-lg">Reflection Chat</CardTitle>
+            <CardDescription className="text-slate-400 text-sm">
+              Review and get AI feedback on your performance
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* メッセージ表示エリア */}
-          <div className="space-y-3 max-h-64 overflow-y-auto">
-            {messages.length === 0 && !isLoading && (
-              <div className="text-center text-slate-400 py-8">
-                <Bot className="h-8 w-8 mx-auto mb-2 text-slate-500" />
-                <p>振り返りを始めてみましょう</p>
-              </div>
-            )}
-            
-            {messages.map((message) => (
-              <div key={message.id} className="space-y-2">
-                {/* ユーザーメッセージ */}
-                <div className="flex items-start gap-2">
-                  <div className="bg-indigo-600 p-2 rounded-full">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="bg-slate-700 p-3 rounded-lg flex-1">
-                    <p className="text-slate-100 text-sm">{message.user_comment}</p>
-                  </div>
+      <CardContent className="p-0 flex-1 flex flex-col">
+        {/* メッセージ表示エリア */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          {messages.length === 0 && !isLoading && (
+            <div className="text-center text-slate-400 py-8">
+              <Bot className="h-8 w-8 mx-auto mb-2 text-slate-500" />
+              <p>Start your reflection journey</p>
+            </div>
+          )}
+          
+          {messages.map((message) => (
+            <div key={message.id} className="space-y-2">
+              {/* ユーザーメッセージ */}
+              <div className="flex items-start gap-2">
+                <div className="bg-indigo-600 p-2 rounded-full">
+                  <User className="h-4 w-4 text-white" />
                 </div>
-                
-                {/* AIメッセージ */}
-                <div className="flex items-start gap-2">
-                  <div className="bg-slate-600 p-2 rounded-full">
-                    <Bot className="h-4 w-4 text-slate-300" />
-                  </div>
-                  <div className="bg-slate-700 p-3 rounded-lg flex-1">
-                    <p className="text-slate-100 text-sm">{message.ai_reply}</p>
-                  </div>
+                <div className="bg-slate-700 p-3 rounded-lg flex-1">
+                  <p className="text-slate-100 text-sm">{message.user_comment}</p>
                 </div>
               </div>
-            ))}
-            
-            {isLoading && (
+              
+              {/* AIメッセージ */}
               <div className="flex items-start gap-2">
                 <div className="bg-slate-600 p-2 rounded-full">
                   <Bot className="h-4 w-4 text-slate-300" />
                 </div>
-                <div className="bg-slate-700 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
+                <div className="bg-slate-700 p-3 rounded-lg flex-1">
+                  <p className="text-slate-100 text-sm">{message.ai_reply}</p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          ))}
+          
+          {isLoading && (
+            <div className="flex items-start gap-2">
+              <div className="bg-slate-600 p-2 rounded-full">
+                <Bot className="h-4 w-4 text-slate-300" />
+              </div>
+              <div className="bg-slate-700 p-3 rounded-lg">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-          {/* 入力フォーム */}
+        {/* 入力フォーム - カード内下部に固定 */}
+        <div className="p-6 border-t border-slate-700">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="感想や改善点を入力してください..."
+              placeholder="Share your thoughts or ask for improvement tips..."
               className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               maxLength={300}
               disabled={isLoading}

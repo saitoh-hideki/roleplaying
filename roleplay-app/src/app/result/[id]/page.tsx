@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadarChart } from '@/components/ui/radar-chart'
 import { ReflectionChat } from '@/components/ui/reflection-chat'
+import { CoreSkillsChart } from '@/components/ui/core-skills-chart'
+import { SceneSkillsChart } from '@/components/ui/scene-skills-chart'
 import { ReportDownload } from '@/components/ui/report-download'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
@@ -261,12 +263,19 @@ export default function ResultPage() {
 
   // 基本評価とシーン評価を分離
   const basicEvaluations = data?.feedbackNotes || []
+  const sceneEvaluations = data?.sceneFeedbackNotes || []
   
   // レーダーチャート用データ
-  const chartData = basicEvaluations.map(note => ({
+  const basicChartData = basicEvaluations.map(note => ({
     label: note.criterion.label,
     score: note.score,
     maxScore: note.criterion.max_score,
+  }))
+
+  const sceneChartData = sceneEvaluations.map(note => ({
+    label: note.scene_criterion.criterion_name,
+    score: note.score,
+    maxScore: note.scene_criterion.max_score,
   }))
 
   if (loading) {
@@ -360,8 +369,8 @@ export default function ResultPage() {
           </CardContent>
         </Card>
 
-        {/* 4分割グリッドレイアウト */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '800px' }}>
+        {/* 上部2分割：基本評価とシーン特有評価 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '600px' }}>
           {/* 基本評価（左上） */}
           <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
             <CardHeader className="pb-4 border-b border-slate-700">
@@ -431,10 +440,9 @@ export default function ResultPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0 h-full">
-
-              {data.sceneFeedbackNotes.length > 0 ? (
+              {sceneEvaluations.length > 0 ? (
                 <div className="overflow-y-auto h-[calc(100%-120px)] p-6 space-y-4">
-                  {data.sceneFeedbackNotes.map((note, index) => (
+                  {sceneEvaluations.map((note, index) => (
                     <div 
                       key={note.id} 
                       className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-cyan-400/30 animate-fade-in-up"
@@ -472,64 +480,37 @@ export default function ResultPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* 振り返りチャット（左下） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-purple-400 text-lg">💬</span>
-                </div>
-                <div>
-                  <CardTitle className="text-slate-50 text-lg">振り返りチャット</CardTitle>
-                  <CardDescription className="text-slate-400 text-sm">
-                    AIとの対話で理解を深める
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 h-full">
-              <div className="h-[calc(100%-120px)]">
-                <ReflectionChat 
-                  evaluationId={data.evaluation.id}
-                  evaluationContext={{
-                    totalScore: data.evaluation.total_score,
-                    summaryComment: data.evaluation.summary_comment,
-                    criteriaScores: data.feedbackNotes.map(note => ({
-                      label: note.criterion.label,
-                      score: note.score,
-                      maxScore: note.criterion.max_score,
-                      comment: note.comment
-                    }))
-                  }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 評価チャート（右下） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-emerald-400 text-lg">📈</span>
-                </div>
-                <div>
-                  <CardTitle className="text-slate-50 text-lg">スキル分析</CardTitle>
-                  <CardDescription className="text-slate-400 text-sm">
-                    各評価項目の可視化
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6 h-[calc(100%-120px)] flex items-center justify-center">
-              <div className="w-full h-full">
-                <RadarChart data={chartData} />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
+        {/* 下部3分割：振り返りチャット、基本スキル分析、シーン特有スキル分析 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '500px' }}>
+          {/* 振り返りチャット（左下） */}
+          <div className="h-full">
+            <ReflectionChat 
+              evaluationId={data.evaluation.id}
+              evaluationContext={{
+                totalScore: data.evaluation.total_score,
+                summaryComment: data.evaluation.summary_comment,
+                criteriaScores: data.feedbackNotes.map(note => ({
+                  label: note.criterion.label,
+                  score: note.score,
+                  maxScore: note.criterion.max_score,
+                  comment: note.comment
+                }))
+              }}
+            />
+          </div>
+
+          {/* 基本スキル分析チャート（中央下） */}
+          <div className="h-full">
+            <CoreSkillsChart data={basicChartData} />
+          </div>
+
+          {/* シーン特有スキル分析チャート（右下） */}
+          <div className="h-full">
+            <SceneSkillsChart data={sceneChartData} sceneTitle={data.scene?.title} />
+          </div>
+        </div>
 
         {/* 文字起こし（折りたたみ可能） */}
         <Card className="bg-slate-800 border-slate-700 text-slate-50">

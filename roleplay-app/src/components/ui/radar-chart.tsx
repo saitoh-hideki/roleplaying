@@ -27,22 +27,42 @@ interface RadarChartProps {
     maxScore: number
   }[]
   className?: string
+  variant?: 'basic' | 'scene' // 基本スキル用かシーン特有スキル用か
 }
 
-export function RadarChart({ data, className = '' }: RadarChartProps) {
+export function RadarChart({ data, className = '', variant = 'basic' }: RadarChartProps) {
+  // 基本スキル用（ブルー系）とシーン特有スキル用（オレンジ系）で色を分ける
+  const colors = variant === 'basic' 
+    ? {
+        backgroundColor: 'rgba(59, 130, 246, 0.2)', // blue-500 with opacity
+        borderColor: 'rgba(59, 130, 246, 1)', // blue-500
+        pointBackgroundColor: 'rgba(59, 130, 246, 1)', // blue-500
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(59, 130, 246, 1)', // blue-500
+      }
+    : {
+        backgroundColor: 'rgba(249, 115, 22, 0.2)', // orange-500 with opacity
+        borderColor: 'rgba(249, 115, 22, 1)', // orange-500
+        pointBackgroundColor: 'rgba(249, 115, 22, 1)', // orange-500
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(249, 115, 22, 1)', // orange-500
+      }
+
   const chartData = {
     labels: data.map(item => item.label),
     datasets: [
       {
-        label: '今回の評価',
+        label: variant === 'basic' ? 'Basic Skills' : 'Scene-Specific Skills',
         data: data.map(item => (item.score / item.maxScore) * 5), // 5点満点に正規化
-        backgroundColor: 'rgba(99, 102, 241, 0.2)',
-        borderColor: 'rgba(99, 102, 241, 1)',
+        backgroundColor: colors.backgroundColor,
+        borderColor: colors.borderColor,
         borderWidth: 2,
-        pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(99, 102, 241, 1)',
+        pointBackgroundColor: colors.pointBackgroundColor,
+        pointBorderColor: colors.pointBorderColor,
+        pointHoverBackgroundColor: colors.pointHoverBackgroundColor,
+        pointHoverBorderColor: colors.pointHoverBorderColor,
       },
     ],
   }
