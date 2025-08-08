@@ -139,7 +139,7 @@ export function RadarChart({ data, className = '', variant = 'basic' }: RadarCha
   }
 
   return (
-    <div className={`w-full h-full ${className}`} style={{ width: '100%', height: '100%' }}>
+    <div className={`w-full h-full ${className}`} style={{ width: '100%', height: '100%', minWidth: '250px', minHeight: '250px' }}>
       <Radar data={chartData} options={options} />
     </div>
   )

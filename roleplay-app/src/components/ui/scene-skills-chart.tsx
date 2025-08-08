@@ -30,7 +30,7 @@ export function SceneSkillsChart({ data, sceneTitle }: SceneSkillsChartProps) {
       </CardHeader>
       <CardContent className="p-4 flex-1 flex items-center justify-center">
         {data.length > 0 ? (
-          <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '280px' }}>
+          <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '300px', minWidth: '100%' }}>
             <RadarChart data={data} variant="scene" />
           </div>
         ) : (
