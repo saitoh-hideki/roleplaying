@@ -483,7 +483,7 @@ export default function ResultPage() {
         </div>
 
         {/* 下部3分割：振り返りチャット、基本スキル分析、シーン特有スキル分析 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '520px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '445px' }}>
           {/* 振り返りチャット（左下） */}
           <div className="h-full">
             <ReflectionChat 
