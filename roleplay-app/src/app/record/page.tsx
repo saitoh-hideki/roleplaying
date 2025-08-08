@@ -41,6 +41,16 @@ export default function RecordPage() {
 
   useEffect(() => {
     fetchScenes()
+    
+    // ブラウザの互換性チェック
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.warn('このブラウザは音声録音をサポートしていません。')
+    }
+    
+    // HTTPS環境チェック
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      console.warn('音声録音にはHTTPS環境が必要です。')
+    }
   }, [])
 
   // シーンが読み込まれた後にURLパラメータからシーンIDを取得して選択
@@ -169,6 +179,16 @@ export default function RecordPage() {
 
   const startRecording = async () => {
     try {
+      // ブラウザの互換性チェック
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('このブラウザは音声録音をサポートしていません。Chrome、Firefox、Safariの最新版をご利用ください。')
+      }
+
+      // HTTPS環境チェック
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        throw new Error('音声録音にはHTTPS環境が必要です。')
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       
       const mediaRecorder = new MediaRecorder(stream, {
@@ -198,8 +218,27 @@ export default function RecordPage() {
       setTranscriptionHistory([])
     } catch (error) {
       console.error('Error accessing microphone:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      alert(`Failed to access microphone: ${errorMessage}`)
+      let errorMessage = 'Unknown error'
+      
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (error instanceof DOMException) {
+        switch (error.name) {
+          case 'NotAllowedError':
+            errorMessage = 'マイクへのアクセスが拒否されました。ブラウザの設定でマイクの使用を許可してください。'
+            break
+          case 'NotFoundError':
+            errorMessage = 'マイクが見つかりません。マイクが接続されているか確認してください。'
+            break
+          case 'NotSupportedError':
+            errorMessage = 'このブラウザは音声録音をサポートしていません。'
+            break
+          default:
+            errorMessage = error.message
+        }
+      }
+      
+      alert(`録音を開始できませんでした: ${errorMessage}`)
     }
   }
 

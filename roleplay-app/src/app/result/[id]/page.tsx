@@ -150,6 +150,7 @@ export default function ResultPage() {
       // Fetch scene feedback notes
       console.log('=== Fetching scene feedback notes ===')
       console.log('Evaluation ID:', evaluation.id)
+
       let sceneFeedbackNotes: any[] = []
       try {
         const { data: sceneFeedbackData, error: sceneFeedbackError } = await supabase
@@ -176,6 +177,8 @@ export default function ResultPage() {
           sceneFeedbackNotes = sceneFeedbackData || []
           console.log('Scene feedback notes fetched successfully:', sceneFeedbackNotes)
           console.log('Scene feedback notes count:', sceneFeedbackNotes.length)
+          
+
         }
       } catch (error) {
         console.error('Scene feedback notes fetch failed:', error)
@@ -428,6 +431,7 @@ export default function ResultPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0 h-full">
+
               {data.sceneFeedbackNotes.length > 0 ? (
                 <div className="overflow-y-auto h-[calc(100%-120px)] p-6 space-y-4">
                   {data.sceneFeedbackNotes.map((note, index) => (

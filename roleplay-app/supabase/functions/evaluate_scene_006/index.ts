@@ -135,6 +135,7 @@ ${allCriteria.map((criterion, index) => `${index + 1}. ${criterion.label}: ${cri
 - 価値提供
 - 反応への対応
 - 次のステップ
+- フォローアップ
 
 評価結果は以下のJSON形式で返してください：
 {
