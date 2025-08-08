@@ -123,14 +123,14 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
 
   return (
     <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col">
-      <CardHeader className="pb-4 border-b border-slate-700">
+      <CardHeader className="pb-3 border-b border-slate-700">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-            <span className="text-purple-400 text-lg">💬</span>
+          <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <span className="text-purple-400 text-sm">💬</span>
           </div>
           <div>
-            <CardTitle className="text-slate-50 text-lg">Reflection Chat</CardTitle>
-            <CardDescription className="text-slate-400 text-sm">
+            <CardTitle className="text-slate-50 text-base font-semibold">Reflection Chat</CardTitle>
+            <CardDescription className="text-slate-400 text-xs">
               Review and get AI feedback on your performance
             </CardDescription>
           </div>
@@ -138,11 +138,11 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
       </CardHeader>
       <CardContent className="p-0 flex-1 flex flex-col">
         {/* メッセージ表示エリア */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && !isLoading && (
-            <div className="text-center text-slate-400 py-8">
-              <Bot className="h-8 w-8 mx-auto mb-2 text-slate-500" />
-              <p>Start your reflection journey</p>
+            <div className="text-center text-slate-400 py-6">
+              <Bot className="h-6 w-6 mx-auto mb-2 text-slate-500" />
+              <p className="text-sm">Start your reflection journey</p>
             </div>
           )}
           
@@ -150,21 +150,21 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
             <div key={message.id} className="space-y-2">
               {/* ユーザーメッセージ */}
               <div className="flex items-start gap-2">
-                <div className="bg-indigo-600 p-2 rounded-full">
-                  <User className="h-4 w-4 text-white" />
+                <div className="bg-indigo-600 p-1.5 rounded-full">
+                  <User className="h-3 w-3 text-white" />
                 </div>
-                <div className="bg-slate-700 p-3 rounded-lg flex-1">
-                  <p className="text-slate-100 text-sm">{message.user_comment}</p>
+                <div className="bg-slate-700 p-2.5 rounded-lg flex-1">
+                  <p className="text-slate-100 text-xs leading-relaxed">{message.user_comment}</p>
                 </div>
               </div>
               
               {/* AIメッセージ */}
               <div className="flex items-start gap-2">
-                <div className="bg-slate-600 p-2 rounded-full">
-                  <Bot className="h-4 w-4 text-slate-300" />
+                <div className="bg-slate-600 p-1.5 rounded-full">
+                  <Bot className="h-3 w-3 text-slate-300" />
                 </div>
-                <div className="bg-slate-700 p-3 rounded-lg flex-1">
-                  <p className="text-slate-100 text-sm">{message.ai_reply}</p>
+                <div className="bg-slate-700 p-2.5 rounded-lg flex-1">
+                  <p className="text-slate-100 text-xs leading-relaxed">{message.ai_reply}</p>
                 </div>
               </div>
             </div>
@@ -172,14 +172,14 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
           
           {isLoading && (
             <div className="flex items-start gap-2">
-              <div className="bg-slate-600 p-2 rounded-full">
-                <Bot className="h-4 w-4 text-slate-300" />
+              <div className="bg-slate-600 p-1.5 rounded-full">
+                <Bot className="h-3 w-3 text-slate-300" />
               </div>
-              <div className="bg-slate-700 p-3 rounded-lg">
+              <div className="bg-slate-700 p-2.5 rounded-lg">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -187,23 +187,24 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
         </div>
 
         {/* 入力フォーム - カード内下部に固定 */}
-        <div className="p-6 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Share your thoughts or ask for improvement tips..."
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs"
               maxLength={300}
               disabled={isLoading}
             />
             <Button
               type="submit"
               disabled={!inputValue.trim() || isLoading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              size="sm"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-3 w-3" />
             </Button>
           </form>
         </div>

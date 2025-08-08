@@ -370,7 +370,7 @@ export default function ResultPage() {
         </Card>
 
         {/* 上部2分割：基本評価とシーン特有評価 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '600px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4" style={{ height: '600px' }}>
           {/* 基本評価（左上） */}
           <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
             <CardHeader className="pb-4 border-b border-slate-700">
@@ -483,9 +483,9 @@ export default function ResultPage() {
         </div>
 
         {/* 下部3分割：振り返りチャット、基本スキル分析、シーン特有スキル分析 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '500px' }}>
-          {/* 振り返りチャット（左下） */}
-          <div className="h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6" style={{ height: '480px' }}>
+          {/* 振り返りチャット（左下）- 34% */}
+          <div className="lg:col-span-4 h-full order-1 lg:order-1">
             <ReflectionChat 
               evaluationId={data.evaluation.id}
               evaluationContext={{
@@ -501,14 +501,44 @@ export default function ResultPage() {
             />
           </div>
 
-          {/* 基本スキル分析チャート（中央下） */}
-          <div className="h-full">
+          {/* 基本スキル分析チャート（中央下）- 33% */}
+          <div className="lg:col-span-4 h-full order-2 lg:order-2">
             <CoreSkillsChart data={basicChartData} />
           </div>
 
-          {/* シーン特有スキル分析チャート（右下） */}
-          <div className="h-full">
+          {/* シーン特有スキル分析チャート（右下）- 33% */}
+          <div className="lg:col-span-4 h-full order-3 lg:order-3">
             <SceneSkillsChart data={sceneChartData} sceneTitle={data.scene?.title} />
+          </div>
+        </div>
+
+        {/* モバイル用：振り返りチャットが最上段、その下に2分割 */}
+        <div className="lg:hidden space-y-4 mb-6">
+          {/* 振り返りチャット（最上段） */}
+          <div className="h-80">
+            <ReflectionChat 
+              evaluationId={data.evaluation.id}
+              evaluationContext={{
+                totalScore: data.evaluation.total_score,
+                summaryComment: data.evaluation.summary_comment,
+                criteriaScores: data.feedbackNotes.map(note => ({
+                  label: note.criterion.label,
+                  score: note.score,
+                  maxScore: note.criterion.max_score,
+                  comment: note.comment
+                }))
+              }}
+            />
+          </div>
+
+          {/* スキル分析チャート（2分割） */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-80">
+              <CoreSkillsChart data={basicChartData} />
+            </div>
+            <div className="h-80">
+              <SceneSkillsChart data={sceneChartData} sceneTitle={data.scene?.title} />
+            </div>
           </div>
         </div>
 
