@@ -343,7 +343,7 @@ export default function ResultPage() {
         </div>
 
         {/* 総合スコアとダウンロードボタン */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-6">
+        <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-6 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-end gap-4">
@@ -370,9 +370,9 @@ export default function ResultPage() {
         </Card>
 
         {/* 上部2分割：基本評価とシーン特有評価 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4" style={{ height: '600px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '600px' }}>
           {/* 基本評価（左上） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden shadow-lg">
             <CardHeader className="pb-4 border-b border-slate-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center">
@@ -423,7 +423,7 @@ export default function ResultPage() {
           </Card>
 
           {/* シーン特有評価（右上） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden">
+          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden shadow-lg">
             <CardHeader className="pb-4 border-b border-slate-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center">
@@ -483,9 +483,9 @@ export default function ResultPage() {
         </div>
 
         {/* 下部3分割：振り返りチャット、基本スキル分析、シーン特有スキル分析 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6" style={{ height: '480px' }}>
-          {/* 振り返りチャット（左下）- 34% */}
-          <div className="lg:col-span-4 h-full order-1 lg:order-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '520px' }}>
+          {/* 振り返りチャット（左下） */}
+          <div className="h-full">
             <ReflectionChat 
               evaluationId={data.evaluation.id}
               evaluationContext={{
@@ -501,13 +501,13 @@ export default function ResultPage() {
             />
           </div>
 
-          {/* 基本スキル分析チャート（中央下）- 33% */}
-          <div className="lg:col-span-4 h-full order-2 lg:order-2">
+          {/* 基本スキル分析チャート（中央下） */}
+          <div className="h-full">
             <CoreSkillsChart data={basicChartData} />
           </div>
 
-          {/* シーン特有スキル分析チャート（右下）- 33% */}
-          <div className="lg:col-span-4 h-full order-3 lg:order-3">
+          {/* シーン特有スキル分析チャート（右下） */}
+          <div className="h-full">
             <SceneSkillsChart data={sceneChartData} sceneTitle={data.scene?.title} />
           </div>
         </div>
@@ -543,7 +543,7 @@ export default function ResultPage() {
         </div>
 
         {/* 文字起こし（折りたたみ可能） */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50">
+        <Card className="bg-slate-800 border-slate-700 text-slate-50 shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-slate-50">録音内容（文字起こし）</CardTitle>

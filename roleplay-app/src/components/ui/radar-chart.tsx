@@ -31,23 +31,23 @@ interface RadarChartProps {
 }
 
 export function RadarChart({ data, className = '', variant = 'basic' }: RadarChartProps) {
-  // 基本スキル用（ブルー系）とシーン特有スキル用（オレンジ系）で色を分ける
+  // 基本スキル用（水色系）とシーン特有スキル用（オレンジ系）で色を分ける
   const colors = variant === 'basic' 
     ? {
-        backgroundColor: 'rgba(59, 130, 246, 0.15)', // blue-500 with lower opacity
-        borderColor: 'rgba(59, 130, 246, 0.8)', // blue-500 with opacity
-        pointBackgroundColor: 'rgba(59, 130, 246, 1)', // blue-500
+        backgroundColor: 'rgba(56, 189, 248, 0.2)', // sky-400 with opacity
+        borderColor: 'rgba(56, 189, 248, 0.9)', // sky-400 with opacity
+        pointBackgroundColor: 'rgba(56, 189, 248, 1)', // sky-400
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(59, 130, 246, 1)', // blue-500
+        pointHoverBorderColor: 'rgba(56, 189, 248, 1)', // sky-400
       }
     : {
-        backgroundColor: 'rgba(249, 115, 22, 0.15)', // orange-500 with lower opacity
-        borderColor: 'rgba(249, 115, 22, 0.8)', // orange-500 with opacity
-        pointBackgroundColor: 'rgba(249, 115, 22, 1)', // orange-500
+        backgroundColor: 'rgba(245, 158, 11, 0.2)', // amber-500 with opacity
+        borderColor: 'rgba(245, 158, 11, 0.9)', // amber-500 with opacity
+        pointBackgroundColor: 'rgba(245, 158, 11, 1)', // amber-500
         pointBorderColor: '#fff',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(249, 115, 22, 1)', // orange-500
+        pointHoverBorderColor: 'rgba(245, 158, 11, 1)', // amber-500
       }
 
   const chartData = {
@@ -58,13 +58,13 @@ export function RadarChart({ data, className = '', variant = 'basic' }: RadarCha
         data: data.map(item => (item.score / item.maxScore) * 5), // 5点満点に正規化
         backgroundColor: colors.backgroundColor,
         borderColor: colors.borderColor,
-        borderWidth: 2,
+        borderWidth: 3,
         pointBackgroundColor: colors.pointBackgroundColor,
         pointBorderColor: colors.pointBorderColor,
         pointHoverBackgroundColor: colors.pointHoverBackgroundColor,
         pointHoverBorderColor: colors.pointHoverBorderColor,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 5,
+        pointHoverRadius: 7,
       },
     ],
   }
@@ -81,25 +81,25 @@ export function RadarChart({ data, className = '', variant = 'basic' }: RadarCha
           stepSize: 1,
           color: '#94a3b8',
           font: {
-            size: 10,
+            size: 12,
             weight: 500,
           },
         },
         grid: {
-          color: 'rgba(148, 163, 184, 0.1)',
+          color: 'rgba(148, 163, 184, 0.15)',
           lineWidth: 1,
         },
         angleLines: {
-          color: 'rgba(148, 163, 184, 0.1)',
+          color: 'rgba(148, 163, 184, 0.15)',
           lineWidth: 1,
         },
         pointLabels: {
-          color: '#e2e8f0',
+          color: '#f8fafc',
           font: {
-            size: 11,
+            size: 13,
             weight: 'bold' as const,
           },
-          padding: 8,
+          padding: 12,
         },
       },
     },
@@ -130,7 +130,7 @@ export function RadarChart({ data, className = '', variant = 'basic' }: RadarCha
   }
 
   return (
-    <div className={`w-56 h-56 ${className}`} style={{ width: '220px', height: '220px' }}>
+    <div className={`w-full h-full ${className}`} style={{ width: '100%', height: '100%' }}>
       <Radar data={chartData} options={options} />
     </div>
   )

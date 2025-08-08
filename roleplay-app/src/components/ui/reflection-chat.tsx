@@ -122,7 +122,7 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col">
+    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col shadow-lg">
       <CardHeader className="pb-3 border-b border-slate-700">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
@@ -150,7 +150,7 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
             <div key={message.id} className="space-y-2">
               {/* ユーザーメッセージ */}
               <div className="flex items-start gap-2">
-                <div className="bg-indigo-600 p-1.5 rounded-full">
+                <div className="bg-purple-600 p-1.5 rounded-full">
                   <User className="h-3 w-3 text-white" />
                 </div>
                 <div className="bg-slate-700 p-2.5 rounded-lg flex-1">
@@ -194,14 +194,14 @@ export function ReflectionChat({ evaluationId, evaluationContext }: ReflectionCh
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Share your thoughts or ask for improvement tips..."
-              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs"
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-xs"
               maxLength={300}
               disabled={isLoading}
             />
             <Button
               type="submit"
               disabled={!inputValue.trim() || isLoading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               size="sm"
             >
               <Send className="h-3 w-3" />

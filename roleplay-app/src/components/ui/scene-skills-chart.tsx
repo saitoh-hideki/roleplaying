@@ -14,11 +14,11 @@ interface SceneSkillsChartProps {
 
 export function SceneSkillsChart({ data, sceneTitle }: SceneSkillsChartProps) {
   return (
-    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col">
+    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col shadow-lg">
       <CardHeader className="pb-3 border-b border-slate-700">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-            <span className="text-orange-400 text-sm">🎯</span>
+          <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+            <span className="text-amber-400 text-sm">🎯</span>
           </div>
           <div>
             <CardTitle className="text-slate-50 text-base font-semibold">Scene-Specific Skills Analysis</CardTitle>
@@ -30,7 +30,7 @@ export function SceneSkillsChart({ data, sceneTitle }: SceneSkillsChartProps) {
       </CardHeader>
       <CardContent className="p-4 flex-1 flex items-center justify-center">
         {data.length > 0 ? (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center" style={{ height: '75%' }}>
             <RadarChart data={data} variant="scene" />
           </div>
         ) : (
