@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
-import { ArrowLeft, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, RefreshCw, ChevronDown, ChevronUp, BarChart3, Target } from 'lucide-react'
 
 interface ResultData {
   recording: {
@@ -280,7 +280,7 @@ export default function ResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-[#0F172A]">
         <div className="container mx-auto p-6 max-w-[1400px]">
           <div className="text-center py-12">
             <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -293,7 +293,7 @@ export default function ResultPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-[#0F172A]">
         <div className="container mx-auto p-6 max-w-[1400px]">
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -316,7 +316,7 @@ export default function ResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-[#0F172A]">
       <div className="container mx-auto px-6 py-8 max-w-[1400px]">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-8">
@@ -343,19 +343,19 @@ export default function ResultPage() {
         </div>
 
         {/* 総合スコアとダウンロードボタン */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-6 shadow-lg">
+        <Card className="bg-[#1E293B] border-[#334155] text-slate-50 mb-6 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-end gap-4">
                 <div>
-                  <span className="text-6xl font-bold text-indigo-400">
+                  <span className="text-6xl font-bold text-[#7C4DFF]">
                     {data.evaluation.total_score}
                   </span>
                   <span className="text-2xl text-slate-400 ml-2">/ 100点</span>
                 </div>
                 <div className="w-32 bg-slate-700 rounded-full h-3">
                   <div
-                    className="bg-indigo-600 h-3 rounded-full transition-all duration-1000"
+                    className="bg-[#7C4DFF] h-3 rounded-full transition-all duration-1000"
                     style={{ width: `${data.evaluation.total_score}%` }}
                   />
                 </div>
@@ -372,12 +372,10 @@ export default function ResultPage() {
         {/* 上部2分割：基本評価とシーン特有評価 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '600px' }}>
           {/* 基本評価（左上） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden shadow-lg">
-            <CardHeader className="pb-4 border-b border-slate-700">
+          <Card className="bg-[#1E293B] border-[#334155] text-slate-50 overflow-hidden shadow-lg">
+            <CardHeader className="pb-4 border-b border-[#334155]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-indigo-400 text-lg">📊</span>
-                </div>
+                <BarChart3 className="w-5 h-5 text-slate-300" />
                 <div>
                   <CardTitle className="text-slate-50 text-lg">基本評価</CardTitle>
                   <CardDescription className="text-slate-400 text-sm">
@@ -393,7 +391,7 @@ export default function ResultPage() {
                   return (
                     <div 
                       key={note.id} 
-                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-indigo-400/30 animate-fade-in-up"
+                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-[#7C4DFF]/30 animate-fade-in-up"
                       style={{ 
                         animationDelay: `${index * 100}ms`,
                       }}
@@ -423,12 +421,10 @@ export default function ResultPage() {
           </Card>
 
           {/* シーン特有評価（右上） */}
-          <Card className="bg-slate-800 border-slate-700 text-slate-50 overflow-hidden shadow-lg">
-            <CardHeader className="pb-4 border-b border-slate-700">
+          <Card className="bg-[#1E293B] border-[#334155] text-slate-50 overflow-hidden shadow-lg">
+            <CardHeader className="pb-4 border-b border-[#334155]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center">
-                  <span className="text-cyan-400 text-lg">🎭</span>
-                </div>
+                <Target className="w-5 h-5 text-slate-300" />
                 <div>
                   <CardTitle className="text-slate-50 text-lg">
                     {data.scene?.title || 'シーン'}特有評価
@@ -445,7 +441,7 @@ export default function ResultPage() {
                   {sceneEvaluations.map((note, index) => (
                     <div 
                       key={note.id} 
-                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-cyan-400/30 animate-fade-in-up"
+                      className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-[#F59E0B]/30 animate-fade-in-up"
                       style={{ 
                         animationDelay: `${(index + basicEvaluations.length) * 100}ms`,
                       }}
@@ -483,7 +479,7 @@ export default function ResultPage() {
         </div>
 
         {/* 下部3分割：振り返りチャット、基本スキル分析、シーン特有スキル分析 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '445px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '460px' }}>
           {/* 振り返りチャット（左下） */}
           <div className="h-full">
             <ReflectionChat 

@@ -28,10 +28,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0f172a]`}
       >
-        <header className="h-16 bg-slate-900/95 backdrop-blur-sm text-white shadow-lg flex items-center justify-between px-6 z-50 border-b border-slate-700">
+        <header className="h-16 bg-[#0F172A]/95 backdrop-blur-sm text-white shadow-lg flex items-center justify-between px-6 z-50 border-b border-[#334155]">
           {/* ロゴ / タイトル */}
           <div className="text-xl font-bold tracking-tight select-none text-slate-50">
-            🖤 接客ロープレ
+            接客ロープレ
           </div>
 
           {/* ナビゲーション */}

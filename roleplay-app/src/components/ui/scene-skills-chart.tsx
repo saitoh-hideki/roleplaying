@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card'
 import { RadarChart } from './radar-chart'
+import { Target } from 'lucide-react'
 
 interface SceneSkillsChartProps {
   data: {
@@ -14,12 +15,10 @@ interface SceneSkillsChartProps {
 
 export function SceneSkillsChart({ data, sceneTitle }: SceneSkillsChartProps) {
   return (
-    <Card className="bg-slate-800 border-slate-700 text-slate-50 h-full flex flex-col shadow-lg">
-      <CardHeader className="pb-3 border-b border-slate-700">
+    <Card className="bg-[#1E293B] border-[#334155] text-slate-50 h-full flex flex-col shadow-lg">
+      <CardHeader className="pb-3 border-b border-[#334155]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
-            <span className="text-amber-400 text-sm">🎯</span>
-          </div>
+          <Target className="w-5 h-5 text-slate-300" />
           <div>
             <CardTitle className="text-slate-50 text-base font-semibold">Scene-Specific Skills Analysis</CardTitle>
             <CardDescription className="text-slate-400 text-xs">
@@ -30,7 +29,7 @@ export function SceneSkillsChart({ data, sceneTitle }: SceneSkillsChartProps) {
       </CardHeader>
       <CardContent className="p-4 flex-1 flex items-center justify-center">
         {data.length > 0 ? (
-          <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '300px', minWidth: '100%' }}>
+          <div className="w-[75%] h-[75%] min-w-[260px] min-h-[260px] flex items-center justify-center">
             <RadarChart data={data} variant="scene" />
           </div>
         ) : (

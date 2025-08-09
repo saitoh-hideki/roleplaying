@@ -2,33 +2,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* ブラック系SaaS風カラーパレット - 改善版 */
-  --background: #0f0f0f;
+  /* ブランド配色（統一） */
+  --background: #0F172A; /* 深ネイビー */
   --foreground: #f8fafc;
-  --card: #1e293b;
+  --card: #1E293B; /* カード背景 */
   --card-foreground: #f8fafc;
-  --popover: #1e293b;
+  --popover: #1E293B;
   --popover-foreground: #f8fafc;
-  --primary: #6366f1;
+  --primary: #7C4DFF; /* アクセント1（パープル） */
   --primary-foreground: #ffffff;
-  --secondary: #334155;
-  --secondary-foreground: #f8fafc;
+  --secondary: #F59E0B; /* アクセント2（オレンジ） */
+  --secondary-foreground: #0F172A;
   --muted: #334155;
   --muted-foreground: #94a3b8;
-  --accent: #0ea5e9;
-  --accent-foreground: #ffffff;
+  --accent: #F59E0B; /* アクセント2として利用 */
+  --accent-foreground: #0F172A;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #334155;
   --input: #334155;
-  --ring: #6366f1;
+  --ring: #7C4DFF;
   --radius: 0.75rem;
   
   /* 追加カラー */
   --success: #10b981;
   --success-foreground: #ffffff;
   --warning: #f59e0b;
-  --warning-foreground: #ffffff;
+  --warning-foreground: #0F172A;
 }
 
 @theme inline {

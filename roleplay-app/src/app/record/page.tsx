@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,7 @@ interface Scene {
   icon: string
 }
 
-export default function RecordPage() {
+function RecordPageContent() {
   const [scenes, setScenes] = useState<Scene[]>([])
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
   const [isRecording, setIsRecording] = useState(false)
@@ -709,5 +709,13 @@ export default function RecordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RecordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0f172a] text-slate-200 flex items-center justify-center">Loading...</div>}>
+      <RecordPageContent />
+    </Suspense>
   )
 }

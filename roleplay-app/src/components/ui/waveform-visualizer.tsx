@@ -9,7 +9,7 @@ interface WaveformVisualizerProps {
 
 export function WaveformVisualizer({ isRecording, className }: WaveformVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current

@@ -13,6 +13,8 @@ interface Recording {
   created_at: string
   score?: number
   evaluated: boolean
+  scene_icon?: string
+  summary_comment?: string
 }
 
 interface RecentRecordingsProps {
@@ -35,11 +37,11 @@ export const RecentRecordings = forwardRef<{ refresh: () => void }, RecentRecord
             id,
             created_at,
             situation_id,
-            scenes(title),
-            evaluations(total_score)
+            scenes(title, icon),
+            evaluations(total_score, summary_comment)
           `)
           .order('created_at', { ascending: false })
-          .limit(5)
+          .limit(7)
 
         if (error) throw error
 
@@ -48,7 +50,9 @@ export const RecentRecordings = forwardRef<{ refresh: () => void }, RecentRecord
           scenario_title: (recording.scenes as any)?.title || 'Unknown',
           created_at: recording.created_at,
           score: (recording.evaluations as any)?.[0]?.total_score,
-          evaluated: !!(recording.evaluations as any)?.[0]
+          evaluated: !!(recording.evaluations as any)?.[0],
+          scene_icon: (recording.scenes as any)?.icon,
+          summary_comment: (recording.evaluations as any)?.[0]?.summary_comment,
         })) || []
 
         setRecordings(formattedRecordings)
@@ -104,9 +108,9 @@ export const RecentRecordings = forwardRef<{ refresh: () => void }, RecentRecord
     }
 
     return (
-      <div className={`bg-slate-800 rounded-xl p-6 text-white ${className || ''}`}>
+      <div className={`bg-[#1E293B] border border-[#334155] rounded-xl p-6 text-white ${className || ''}`}>
         <div className="flex items-center space-x-2 mb-4">
-          <Clock className="w-5 h-5 text-indigo-400" />
+          <Clock className="w-5 h-5 text-slate-300" />
           <h3 className="text-lg font-semibold">📂 最新の録音</h3>
         </div>
         
@@ -118,54 +122,61 @@ export const RecentRecordings = forwardRef<{ refresh: () => void }, RecentRecord
           </div>
         ) : (
           <div className="space-y-3">
-            {recordings.map((recording) => (
-              <Card key={recording.id} className="bg-slate-700 border-slate-600 p-4 text-white hover:bg-slate-600 transition-colors">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-slate-200 mb-1">
-                      📝 {recording.scenario_title}
-                    </h4>
-                    <p className="text-xs text-slate-400 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {formatDate(recording.created_at)}
-                    </p>
-                  </div>
-                  <div className="text-right space-y-2">
-                    {recording.evaluated ? (
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-indigo-400 border-indigo-400">
-                        {recording.score}点
+            {recordings.map((recording) => {
+              const score = recording.score ?? 0
+              const scoreClass = score >= 80
+                ? 'bg-green-500/15 text-green-400 border-green-500/30'
+                : score >= 60
+                ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30'
+                : 'bg-red-500/15 text-red-400 border-red-500/30'
+              return (
+                <Card
+                  key={recording.id}
+                  onClick={() => handleViewDetails(recording.id)}
+                  className="group relative cursor-pointer bg-[#0f172a] border-[#334155] hover:bg-[#0f172a]/80 p-4 text-white transition-colors"
+                >
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="flex-1 flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-md bg-[#1E293B] border border-[#334155] flex items-center justify-center text-base">
+                        <span className="leading-none">{recording.scene_icon || '🎭'}</span>
                       </div>
-                    ) : (
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-slate-400 border-slate-400">
-                        未評価
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-200 mb-1">
+                          {recording.scenario_title}
+                        </h4>
+                        <p className="text-xs text-slate-400 flex items-center">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {formatDate(recording.created_at)}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetails(recording.id)}
-                        className="text-xs h-7 px-2 text-slate-300 hover:text-indigo-400"
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${recording.evaluated ? scoreClass : 'text-slate-400 border-slate-500 bg-transparent'}`}>
+                        {recording.evaluated ? `${recording.score}点` : '未評価'}
+                      </div>
+                      <button
+                        aria-label="Play"
+                        className="p-2 rounded-md border border-[#334155] text-slate-300 hover:text-white hover:border-slate-400"
                       >
-                        <Play className="w-3 h-3 mr-1" />
-                        詳細
-                      </Button>
-                      {!recording.evaluated && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEvaluate(recording.id)}
-                          className="text-xs h-7 px-2 text-slate-300 hover:text-indigo-400"
-                        >
-                          <Star className="w-3 h-3 mr-1" />
-                          評価
-                        </Button>
-                      )}
+                        <Play className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+
+                  {/* Hover preview */}
+                  {recording.summary_comment && (
+                    <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="max-w-xs bg-[#1E293B] border border-[#334155] text-slate-200 text-xs p-3 rounded-lg shadow-xl">
+                        <div className="font-semibold mb-1">評価サマリー</div>
+                        <p className="line-clamp-3">
+                          {recording.summary_comment}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>

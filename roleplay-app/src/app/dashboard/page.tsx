@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { BarChart3, TrendingUp, Clock, Award, Play, ArrowRight, Target, Zap } from 'lucide-react'
+import { BarChart3, Clock, Zap, Gauge, Award } from 'lucide-react'
 import { LearningPlanner } from '@/components/ui/learning-planner'
 
 interface RecentRoleplay {
@@ -123,14 +123,15 @@ export default function DashboardPage() {
     : 0
 
   return (
-    <div className="bg-[#0F111A] py-8">
+    <div className="bg-[#0F172A] py-8">
       <div className="max-w-7xl mx-auto px-6">
         {/* ヘッダー */}
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-2">
-                🧑‍🏫 Roleplay Dashboard
+              <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <Gauge className="w-5 h-5 text-[#7C4DFF]" />
+                Roleplay Dashboard
               </h1>
               <p className="text-sm text-slate-400">
                 Track your customer interaction practice sessions and analyze your progress.
@@ -138,49 +139,51 @@ export default function DashboardPage() {
             </div>
             <Link href="/scenes">
               <Button className="bg-[#7C4DFF] hover:bg-[#6b3bff] text-white flex items-center gap-2">
-                🎯 Training Scenes
+                <Award className="w-4 h-4" /> Training Scenes
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* 統計パネル（3枚の指標カード） */}
+        {/* 統計パネル（主要KPI） */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
+          <Card className="bg-[#1E293B] border border-[#334155] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Total Sessions</h4>
             <p className="text-2xl font-bold text-[#7C4DFF]">{totalPracticeCount}</p>
           </Card>
           
-          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
+          <Card className="bg-[#1E293B] border border-[#334155] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Average Score</h4>
             <p className="text-2xl font-bold text-[#7C4DFF]">{averageScore}</p>
           </Card>
           
-          <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 text-white">
+          <Card className="bg-[#1E293B] border border-[#334155] p-5 text-white">
             <h4 className="text-sm text-slate-400 mb-1">Best Score</h4>
             <p className="text-2xl font-bold text-[#7C4DFF]">{highestScore}</p>
           </Card>
         </div>
 
-        {/* メイン2カラム（履歴 + チャート） */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* メイン2カラム（55:45） 履歴 + チャート */}
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-6">
           {/* Recent Roleplays */}
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-white mb-2">🕒 Recent Roleplays</h3>
+            <h3 className="text-base font-semibold text-white mb-2 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-slate-300" /> Recent Roleplays
+            </h3>
             {loading ? (
               <div className="text-center py-8">
                 <div className="w-8 h-8 border-2 border-[#7C4DFF] border-t-transparent rounded-full animate-spin mx-auto"></div>
                 <p className="text-slate-400 mt-4">Loading...</p>
               </div>
             ) : recentRoleplays.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              <div className="space-y-3 h-[420px] overflow-y-auto pr-1">
                 {recentRoleplays.slice(0,7).map((roleplay) => (
                   <Link
                     key={roleplay.id}
                     href={`/result/${roleplay.id}`}
                     className="block"
                   >
-                    <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-4 rounded-lg text-white flex justify-between items-center hover:bg-[rgba(124,77,255,0.12)] transition-colors cursor-pointer">
+                    <Card className="bg-[#1E293B] border border-[#334155] p-4 rounded-lg text-white flex justify-between items-center hover:bg-[rgba(124,77,255,0.12)] transition-colors cursor-pointer">
                       <div className="flex-1">
                         <h4 className="text-sm font-semibold text-slate-200">{roleplay.scenario?.title || 'No Scenario'}</h4>
                         <p className="text-xs text-slate-400 mt-0.5">
@@ -203,15 +206,15 @@ export default function DashboardPage() {
                 ))}
                 <div className="text-right pt-1">
                   <Link href="/history">
-                    <Button variant="outline" className="border-[#2A2E3D] text-slate-300 hover:bg-[#1A1F2B] hover:text-slate-50 text-sm py-1.5">
+                    <Button variant="outline" className="border-[#334155] text-slate-300 hover:bg-[#1E293B] hover:text-slate-50 text-sm py-1.5">
                       View All
                     </Button>
                   </Link>
                 </div>
               </div>
             ) : (
-              <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-6 text-center text-white">
-                <div className="w-12 h-12 bg-[#2A2E3D] rounded-full flex items-center justify-center mx-auto mb-4">
+              <Card className="bg-[#1E293B] border border-[#334155] p-6 text-center text-white">
+                <div className="w-12 h-12 bg-[#334155] rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-6 h-6 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">No roleplay sessions yet</h3>
@@ -226,10 +229,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Score Trend Chart */}
-          <div className="bg-[#1A1F2B] border border-[#2A2E3D] rounded-lg p-6">
-            <h3 className="text-base font-semibold text-white mb-4">📈 Score Trend</h3>
+          <div className="bg-[#1E293B] border border-[#334155] rounded-lg p-6 h-[420px] flex flex-col">
+            <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-slate-300" /> Score Trend
+            </h3>
             {scoreData.length > 0 ? (
-              <div className="bg-[#111827] rounded-lg p-4 h-[360px]">
+              <div className="bg-[#111827] rounded-lg p-4 flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={scoreData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2A2E3D" />
@@ -249,7 +254,7 @@ export default function DashboardPage() {
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: '#0F111A',
-                        border: '1px solid #2A2E3D',
+                        border: '1px solid #334155',
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
                         color: '#f1f5f9'
@@ -269,7 +274,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-[#2A2E3D] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-[#334155] rounded-full flex items-center justify-center mx-auto mb-4">
                   <BarChart3 className="w-8 h-8 text-slate-400" />
                 </div>
                 <p className="text-slate-400 font-medium">No data available</p>

@@ -26,6 +26,7 @@ export function LearningPlanner() {
   const [planNote, setPlanNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
+  const [savedToast, setSavedToast] = useState(false)
   const scenarioTriggerRef = useRef<HTMLButtonElement | null>(null)
 
   const supabase = createClient()
@@ -108,6 +109,9 @@ export function LearningPlanner() {
         if (error) throw error
         setNewNote('')
         await fetchData()
+        // 保存完了トースト
+        setSavedToast(true)
+        setTimeout(() => setSavedToast(false), 1500)
       } catch (e) {
         console.error('Autosave note failed:', e)
       } finally {
@@ -189,9 +193,9 @@ export function LearningPlanner() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10 relative">
       {/* Reflection Notes */}
-      <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 rounded-lg text-white h-full flex flex-col">
+      <Card className="bg-[#1E293B] border border-[#334155] p-5 rounded-lg text-white h-full flex flex-col">
         <CardHeader className="pb-4">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             📝 Reflection Notes
@@ -204,7 +208,7 @@ export function LearningPlanner() {
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Write your thoughts, reflections, or learning insights... (auto-saved)"
-              className="w-full h-32 bg-[#111827] text-white p-3 rounded border border-[#2A2E3D] resize-none focus:border-[#7C4DFF] focus:outline-none"
+              className="w-full h-32 bg-[#111827] text-white p-3 rounded border border-[#334155] resize-none focus:border-[#7C4DFF] focus:outline-none"
             />
             {savingNote && (
               <p className="text-xs text-slate-400 mt-1">Saving...</p>
@@ -218,7 +222,7 @@ export function LearningPlanner() {
             </h4>
             <div className="space-y-3 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
               {notes.slice(0, 10).map((note) => (
-                <div key={note.id} className="bg-[#111827] p-3 rounded border border-[#2A2E3D]">
+                <div key={note.id} className="bg-[#111827] p-3 rounded border border-[#334155]">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs text-slate-400">
                       {format(new Date(note.created_at), 'MMM dd, yyyy HH:mm')}
@@ -249,7 +253,7 @@ export function LearningPlanner() {
       </Card>
 
       {/* Practice Planner */}
-      <Card className="bg-[#1A1F2B] border border-[#2A2E3D] p-5 rounded-lg text-white h-full">
+      <Card className="bg-[#1E293B] border border-[#334155] p-5 rounded-lg text-white h-full">
         <CardHeader className="pb-4">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             📅 Practice Planner
@@ -265,7 +269,7 @@ export function LearningPlanner() {
                 setTimeout(() => scenarioTriggerRef.current?.focus(), 50)
               }}
               value={selectedDate}
-              className="bg-[#111827] border border-[#2A2E3D] rounded-lg p-2"
+              className="bg-[#111827] border border-[#334155] rounded-lg p-2"
               tileClassName={({ date }) => {
                 const plansForDate = getPlansForDate(date)
                 return plansForDate.length > 0 ? 'bg-[#7C4DFF] text-white' : ''
@@ -285,7 +289,7 @@ export function LearningPlanner() {
           <div className="space-y-3 mb-6">
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">Selected Date</label>
-              <div className="bg-[#111827] p-2 rounded border border-[#2A2E3D] text-sm">
+              <div className="bg-[#111827] p-2 rounded border border-[#334155] text-sm">
                 {format(selectedDate, 'EEEE, MMMM dd, yyyy', { locale: ja })}
               </div>
             </div>
@@ -293,10 +297,10 @@ export function LearningPlanner() {
             <div>
               <label className="text-sm font-medium text-slate-300 mb-2 block">Scenario</label>
               <Select value={selectedScene} onValueChange={setSelectedScene}>
-                <SelectTrigger ref={scenarioTriggerRef} className="bg-[#111827] border-[#2A2E3D] text-white">
+                <SelectTrigger ref={scenarioTriggerRef} className="bg-[#111827] border-[#334155] text-white">
                   <SelectValue placeholder="Select a scenario" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111827] border-[#2A2E3D]">
+                <SelectContent className="bg-[#111827] border-[#334155]">
                   {scenarios.map((scenario) => (
                     <SelectItem key={scenario.id} value={scenario.id} className="text-white">
                       {scenario.title}
@@ -312,7 +316,7 @@ export function LearningPlanner() {
                 value={planNote}
                 onChange={(e) => setPlanNote(e.target.value)}
                 placeholder="Add any notes about this practice session..."
-                className="w-full h-20 bg-[#111827] text-white p-2 rounded border border-[#2A2E3D] resize-none focus:border-[#7C4DFF] focus:outline-none text-sm"
+                className="w-full h-20 bg-[#111827] text-white p-2 rounded border border-[#334155] resize-none focus:border-[#7C4DFF] focus:outline-none text-sm"
               />
             </div>
 
@@ -334,7 +338,7 @@ export function LearningPlanner() {
             </h4>
             <div className="space-y-2 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
               {plans.slice(0, 3).map((plan) => (
-                <div key={plan.id} className="bg-[#111827] p-3 rounded border border-[#2A2E3D]">
+                <div key={plan.id} className="bg-[#111827] p-3 rounded border border-[#334155]">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -371,6 +375,13 @@ export function LearningPlanner() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 保存完了トースト */}
+      {savedToast && (
+        <div className="fixed bottom-4 right-4 bg-[#1E293B] border border-[#334155] text-slate-100 text-sm px-3 py-2 rounded-lg shadow-lg">
+          反省メモを保存しました
+        </div>
+      )}
     </div>
   )
 } 
