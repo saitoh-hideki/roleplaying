@@ -282,10 +282,37 @@ ${transcript}
         })
         console.log(`  - Added to scene feedback notes`)
       } else {
-        console.error('Unknown criterion label:', cs.criterionId)
-        console.error('Available basic criteria:', Array.from(basicCriteriaMap.keys()))
-        console.error('Available scene criteria:', Array.from(sceneCriteriaMap.keys()))
-        throw new Error(`Unknown criterion label: ${cs.criterionId}`)
+        // Auto-register missing scene-specific criterion and continue
+        const name = cs.criterionId?.toString().trim() || ''
+        if (name) {
+          console.warn('Unknown criterion, attempting to insert:', name)
+          const { data: inserted, error: insertErr } = await supabase
+            .from('scene_evaluation_criteria')
+            .insert({
+              scene_id: 'scene_002',
+              criterion_name: name,
+              criterion_description: '',
+              max_score: 5,
+              sort_order: (sceneCriteria?.length || 0) + 1
+            })
+            .select()
+            .single()
+          if (!insertErr && inserted) {
+            sceneCriteriaMap.set(name, inserted.id)
+            sceneFeedbackNotes.push({
+              evaluation_id: evalData.id,
+              scene_criterion_id: inserted.id,
+              score: cs.score,
+              comment: cs.comment
+            })
+            console.log('Inserted and used new scene criterion:', name)
+          } else {
+            console.error('Failed to insert missing scene criterion:', insertErr)
+            throw new Error(`Unknown criterion label and insert failed: ${cs.criterionId}`)
+          }
+        } else {
+          throw new Error(`Unknown criterion label: ${cs.criterionId}`)
+        }
       }
     }
     

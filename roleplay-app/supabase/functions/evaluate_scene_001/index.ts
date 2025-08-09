@@ -286,7 +286,22 @@ ${transcript}
         throw new Error(`Unknown criterion label: ${cs.criterionId}`)
       }
     }
-    
+
+    // Ensure basic feedback has entries for all basic criteria (always 5)
+    if (basicCriteriaData.length > 0) {
+      const existingBasicIds = new Set(basicFeedbackNotes.map(n => n.criterion_id))
+      for (const c of basicCriteriaData) {
+        if (!existingBasicIds.has(c.id)) {
+          basicFeedbackNotes.push({
+            evaluation_id: evalData.id,
+            criterion_id: c.id,
+            score: Math.max(1, Math.min(5, Math.round(evaluation.totalScore / 20))),
+            comment: `${c.label} の評価が明示されていなかったため総合スコアから自動補完しました。`
+          })
+        }
+      }
+    }
+
     // シーン特有評価項目が含まれていない場合、デフォルトの評価を追加
     if (sceneFeedbackNotes.length === 0 && sceneCriteria.length > 0) {
       console.log('No scene-specific criteria found in GPT response, adding default evaluations')

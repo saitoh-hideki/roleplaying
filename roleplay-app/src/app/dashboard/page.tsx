@@ -77,11 +77,10 @@ export default function DashboardPage() {
         .from('evaluations')
         .select(`
           total_score,
-          created_at,
-          recordings (created_at)
+          created_at
         `)
-        .order('created_at', { ascending: true })
-        .limit(10)
+        .order('created_at', { ascending: false })
+        .limit(20)
 
       if (evalError) {
         console.error('Evaluations fetch error:', evalError)

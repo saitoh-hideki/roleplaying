@@ -393,6 +393,22 @@ function RecordPageContent() {
 
       const { evaluationId } = await evaluateResponse.json()
 
+      // 理念評価を非同期トリガー（失敗しても本フローは継続）
+      try {
+        fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/evaluate_philosophy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            evaluationId,
+            transcript,
+            situationId: selectedScene.id
+          })
+        }).catch(() => {})
+      } catch (_) {}
+
       // 最新録音リストを更新
       if (recentRecordingsRef.current) {
         recentRecordingsRef.current.refresh()

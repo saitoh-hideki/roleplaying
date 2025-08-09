@@ -58,6 +58,27 @@ export interface EvaluationCriterion {
   updated_at: string
 }
 
+export interface PhilosophyEvaluationCriterion {
+  id: string
+  code: 'vision' | 'mission' | 'purpose'
+  label: string
+  description?: string
+  max_score: number
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface PhilosophyFeedbackNote {
+  id: string
+  evaluation_id: string
+  philosophy_criterion_id: string
+  score: number
+  comment: string
+  created_at: string
+  philosophy_criterion?: PhilosophyEvaluationCriterion
+}
+
 export interface Recording {
   id: string
   scenario_id?: string
@@ -144,6 +165,16 @@ export type Database = {
         Row: FeedbackNote
         Insert: Omit<FeedbackNote, 'id' | 'created_at'>
         Update: Partial<Omit<FeedbackNote, 'id' | 'created_at'>>
+      }
+      philosophy_evaluation_criteria: {
+        Row: PhilosophyEvaluationCriterion
+        Insert: Omit<PhilosophyEvaluationCriterion, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<PhilosophyEvaluationCriterion, 'id' | 'created_at' | 'updated_at'>>
+      }
+      philosophy_feedback_notes: {
+        Row: PhilosophyFeedbackNote
+        Insert: Omit<PhilosophyFeedbackNote, 'id' | 'created_at'>
+        Update: Partial<Omit<PhilosophyFeedbackNote, 'id' | 'created_at'>>
       }
       reflection_notes: {
         Row: ReflectionNote

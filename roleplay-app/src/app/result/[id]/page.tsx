@@ -42,6 +42,17 @@ interface ResultData {
       type?: string
     }
   }[]
+  philosophyFeedbackNotes?: {
+    id: string
+    score: number
+    comment: string
+    philosophy_criterion: {
+      code: 'vision' | 'mission' | 'purpose'
+      label: string
+      description?: string
+      max_score: number
+    }
+  }[]
   sceneFeedbackNotes: {
     id: string
     score: number
@@ -65,6 +76,7 @@ export default function ResultPage() {
   const [data, setData] = useState<ResultData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showTranscript, setShowTranscript] = useState(false)
+  const [philosophyPollAttempts, setPhilosophyPollAttempts] = useState(0)
   const supabase = createClient()
 
   useEffect(() => {
@@ -72,6 +84,44 @@ export default function ResultPage() {
       fetchResultData()
     }
   }, [id])
+
+  // 軽いポーリングで理念評価が入ってきたら追従更新（最大6回=約30秒）
+  useEffect(() => {
+    if (!data?.evaluation?.id) return
+    if ((data.philosophyFeedbackNotes?.length || 0) > 0) return
+    if (philosophyPollAttempts >= 6) return
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data: philosophyNotes } = await supabase
+          .from('philosophy_feedback_notes')
+          .select(`
+            id, score, comment,
+            philosophy_evaluation_criteria (code, label, description, max_score)
+          `)
+          .eq('evaluation_id', data.evaluation.id)
+
+        if (philosophyNotes && philosophyNotes.length > 0) {
+          setData(prev => prev ? {
+            ...prev,
+            philosophyFeedbackNotes: philosophyNotes.map((p: any) => ({
+              ...p,
+              philosophy_criterion: {
+                code: (p.philosophy_evaluation_criteria as any)?.code,
+                label: (p.philosophy_evaluation_criteria as any)?.label,
+                description: (p.philosophy_evaluation_criteria as any)?.description,
+                max_score: (p.philosophy_evaluation_criteria as any)?.max_score
+              }
+            }))
+          } : prev)
+        }
+      } finally {
+        setPhilosophyPollAttempts(n => n + 1)
+      }
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [data?.evaluation?.id, data?.philosophyFeedbackNotes?.length, philosophyPollAttempts, supabase])
 
   const fetchResultData = async () => {
     try {
@@ -150,6 +200,20 @@ export default function ResultPage() {
       console.log('Feedback notes fetched successfully:', feedbackNotes)
 
       // Fetch scene feedback notes
+      // Fetch philosophy feedback notes
+      const { data: philosophyNotes, error: philosophyError } = await supabase
+        .from('philosophy_feedback_notes')
+        .select(`
+          id,
+          score,
+          comment,
+          philosophy_evaluation_criteria (code, label, description, max_score)
+        `)
+        .eq('evaluation_id', evaluation.id)
+
+      if (philosophyError) {
+        console.error('Philosophy feedback notes fetch error:', philosophyError)
+      }
       console.log('=== Fetching scene feedback notes ===')
       console.log('Evaluation ID:', evaluation.id)
 
@@ -234,6 +298,16 @@ export default function ResultPage() {
           }
         })),
         scene: scene
+        ,
+        philosophyFeedbackNotes: (philosophyNotes || []).map((p: any) => ({
+          ...p,
+          philosophy_criterion: {
+            code: (p.philosophy_evaluation_criteria as any)?.code,
+            label: (p.philosophy_evaluation_criteria as any)?.label,
+            description: (p.philosophy_evaluation_criteria as any)?.description,
+            max_score: (p.philosophy_evaluation_criteria as any)?.max_score
+          }
+        }))
       })
     } catch (error) {
       console.error('Error fetching result data:', error)
@@ -369,9 +443,75 @@ export default function ResultPage() {
           </CardContent>
         </Card>
 
-        {/* 上部2分割：基本評価とシーン特有評価 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" style={{ height: '600px' }}>
-          {/* 基本評価（左上） */}
+        {/* 上部3分割：理念・基本・シーン特有評価 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '600px' }}>
+          {/* 理念評価（左上） */}
+          <Card className="bg-[#1E293B] border-[#334155] text-slate-50 overflow-hidden shadow-lg">
+            <CardHeader className="pb-4 border-b border-[#334155]">
+              <div className="flex items-center gap-3">
+                <span className="w-5 h-5 inline-flex items-center justify-center text-slate-300">🏳️‍🌈</span>
+                <div>
+                  <CardTitle className="text-slate-50 text-lg">理念評価（V/M/P）</CardTitle>
+                  <CardDescription className="text-slate-400 text-sm">
+                    企業理念の実践度（5点満点×3項目）
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 h-full">
+              <div className="overflow-y-auto h-[calc(100%-120px)] p-6 space-y-4">
+                {(() => {
+                  const vmps = ['vision','mission','purpose'] as const
+                  const existing = new Map((data.philosophyFeedbackNotes||[]).map(n => [n.philosophy_criterion.code, n]))
+                  const rows = vmps.map(code => existing.get(code) || ({
+                    id: `placeholder-${code}`,
+                    score: 1,
+                    comment: '評価を待機中です…',
+                    philosophy_criterion: {
+                      code,
+                      label: code === 'vision' ? 'ビジョン' : code === 'mission' ? 'ミッション' : 'パーパス',
+                      description: '',
+                      max_score: 5,
+                    }
+                  } as any))
+                  return rows
+                })().map((note, index) => (
+                  <div
+                    key={note.id}
+                    className="group p-4 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-all duration-300 border border-slate-600/50 hover:border-[#7C4DFF]/30 animate-fade-in-up"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs uppercase tracking-wide text-slate-300 bg-slate-600/50 px-2 py-0.5 rounded">
+                          {note.philosophy_criterion.code}
+                        </span>
+                        <h4 className="font-semibold text-slate-50">{note.philosophy_criterion.label}</h4>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-bold transition-all duration-300 ${
+                        note.score >= 4 ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        note.score >= 3 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                        'bg-red-500/20 text-red-400 border border-red-500/30'
+                      }`}>
+                        {note.score} / {note.philosophy_criterion.max_score}
+                      </div>
+                    </div>
+                    {note.philosophy_criterion.description && (
+                      <p className="text-xs text-slate-400 mb-3">{note.philosophy_criterion.description}</p>
+                    )}
+                    <div className="bg-slate-800 p-3 rounded-lg border border-slate-600">
+                      <p className="text-sm text-slate-300">{note.comment}</p>
+                    </div>
+                  </div>
+                ))}
+                {(!data.philosophyFeedbackNotes || data.philosophyFeedbackNotes.length === 0) && (
+                  <div className="text-slate-400 text-sm">理念評価データがありません</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 基本評価（中央上） */}
           <Card className="bg-[#1E293B] border-[#334155] text-slate-50 overflow-hidden shadow-lg">
             <CardHeader className="pb-4 border-b border-[#334155]">
               <div className="flex items-center gap-3">
