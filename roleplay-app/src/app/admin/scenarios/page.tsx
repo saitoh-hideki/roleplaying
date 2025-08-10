@@ -227,7 +227,8 @@ export default function AdminScenesPage() {
   }
 
   const addEvaluationCriterion = () => {
-    if (formData.evaluation_criteria.length < 5) {
+    // 上限を10項目に拡張
+    if (formData.evaluation_criteria.length < 10) {
       setFormData({
         ...formData,
         evaluation_criteria: [
@@ -366,12 +367,17 @@ export default function AdminScenesPage() {
               {/* シーン特有評価項目 */}
               <div className="border border-slate-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-200">シーン特有評価項目</h3>
+                  <div>
+                    <h3 className="font-semibold text-slate-200">シーン特有評価項目</h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {formData.evaluation_criteria.length}/10 項目
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     onClick={addEvaluationCriterion}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                    disabled={formData.evaluation_criteria.length >= 5}
+                    disabled={formData.evaluation_criteria.length >= 10}
                   >
                     項目追加
                   </Button>
