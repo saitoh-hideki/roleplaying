@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "接客ロープレ SaaS",
+  title: "OrgShift RolePlay",
   description: "接客スタッフ向けの社員研修用ロールプレイアプリ",
 };
 
@@ -31,7 +31,7 @@ export default function RootLayout({
         <header className="h-16 bg-[#0F172A]/95 backdrop-blur-sm text-white shadow-lg flex items-center justify-between px-6 z-50 border-b border-[#334155]">
           {/* ロゴ / タイトル */}
           <div className="text-xl font-bold tracking-tight select-none text-slate-50">
-            接客ロープレ
+            OrgShift RolePlay
           </div>
 
           {/* ナビゲーション */}
