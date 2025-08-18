@@ -8,5 +8,8 @@
     "start": "cd roleplay-app && npm run start",
     "lint": "cd roleplay-app && npm run lint"
   },
-  "private": true
-} 
+  "private": true,
+  "dependencies": {
+    "react-dom": "19.0.0"
+  }
+}
