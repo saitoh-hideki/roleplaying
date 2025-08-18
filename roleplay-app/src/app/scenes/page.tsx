@@ -104,67 +104,67 @@ export default function ScenesPage() {
   const categories = categorizeScenes()
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
-      <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-[#0E1117]">
+      <div className="w-full px-8 py-12">
         {/* ページタイトル */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">
             🎯 Training Scenes Dashboard
           </h1>
-          <p className="text-sm text-slate-400 mb-8">
+          <p className="text-lg text-slate-400 mb-8">
             Practice realistic customer interaction scenarios and receive feedback tailored to each situation.
           </p>
         </div>
 
         {/* 統計情報 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Card className="bg-slate-800 border-0 shadow-lg p-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-indigo-400" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 p-8 rounded-3xl shadow-2xl shadow-black/20">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-2xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Available Scenes</p>
-                <p className="text-2xl font-bold text-slate-50">{scenes.length}</p>
+                <p className="text-sm text-slate-400 font-medium">Available Scenes</p>
+                <p className="text-3xl font-bold text-white">{scenes.length}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="bg-slate-800 border-0 shadow-lg p-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-cyan-400" />
+          <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 p-8 rounded-3xl shadow-2xl shadow-black/20">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#22D3EE] to-[#06B6D4] rounded-2xl flex items-center justify-center">
+                <Target className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">Scene Categories</p>
-                <p className="text-2xl font-bold text-slate-50">3 Types</p>
+                <p className="text-sm text-slate-400 font-medium">Scene Categories</p>
+                <p className="text-3xl font-bold text-white">3 Types</p>
               </div>
             </div>
           </Card>
           
-          <Card className="bg-slate-800 border-0 shadow-lg p-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-amber-400" />
+          <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 p-8 rounded-3xl shadow-2xl shadow-black/20">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#F59E0B] to-[#D97706] rounded-2xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-slate-400">AI Evaluation</p>
-                <p className="text-2xl font-bold text-slate-50">GPT + Whisper</p>
+                <p className="text-sm text-slate-400 font-medium">AI Evaluation</p>
+                <p className="text-3xl font-bold text-white">GPT + Whisper</p>
               </div>
             </div>
           </Card>
         </div>
 
         {/* セクション1: Basic Customer Service Scenes */}
-        <div className="mb-10">
-          <h2 className="text-base font-semibold text-slate-300 mt-10 mb-4 flex items-center">
-            <UserCheck className="w-4 h-4 mr-2 text-indigo-400" />
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-white mt-12 mb-6 flex items-center">
+            <UserCheck className="w-6 h-6 mr-3 text-[#6366F1]" />
             📂 Basic Customer Service Scenes
           </h2>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-lg text-slate-400 mb-8">
             Essential scenarios for everyday customer interactions and first-time visitors.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {categories.basic.map((scene, index) => {
               const accentColor = getCardAccentColor(index)
               const accentClasses = getAccentClasses(accentColor)
@@ -172,26 +172,26 @@ export default function ScenesPage() {
               return (
                 <Card 
                   key={scene.id} 
-                  className="min-h-[180px] p-5 bg-slate-800 rounded-lg shadow hover:shadow-md flex flex-col justify-between transition group"
+                  className="min-h-[200px] p-6 bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 rounded-2xl shadow-lg shadow-black/20 hover:shadow-2xl hover:shadow-[#6366F1]/20 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] group"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-10 h-10 ${accentClasses.iconBg} rounded-lg flex items-center justify-center`}>
-                        <span className="text-lg">{scene.icon}</span>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-4">
+                      <div className={`w-12 h-12 ${accentClasses.iconBg} rounded-2xl flex items-center justify-center`}>
+                        <span className="text-xl">{scene.icon}</span>
                       </div>
                       <div className="flex-1">
-                        <h3 className={`text-base font-semibold text-white ${accentClasses.hoverText} transition-colors duration-200`}>
+                        <h3 className={`text-lg font-semibold text-white ${accentClasses.hoverText} transition-colors duration-200`}>
                           {scene.title}
                         </h3>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-400 leading-snug">
+                    <p className="text-sm text-slate-400 leading-relaxed">
                       {scene.description}
                     </p>
                   </div>
                   <Button
                     onClick={() => handleStartRoleplay(scene.id)}
-                    className={`mt-4 w-full text-sm ${accentClasses.buttonBg} text-white border-0 transition-all duration-200 shadow-sm hover:shadow-md`}
+                    className={`mt-6 w-full text-sm ${accentClasses.buttonBg} text-white border-0 transition-all duration-200 shadow-lg hover:shadow-xl rounded-xl py-3`}
                   >
                     <Play className="w-4 h-4 mr-2" />
                     Start Roleplay

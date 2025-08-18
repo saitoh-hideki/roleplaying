@@ -354,11 +354,11 @@ export default function ResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0F172A]">
-        <div className="container mx-auto p-6 max-w-[1400px]">
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-slate-400 mt-4">読み込み中...</p>
+      <div className="min-h-screen bg-[#0E1117]">
+        <div className="w-full px-8 py-12">
+          <div className="text-center py-16">
+            <div className="w-12 h-12 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400 text-lg">読み込み中...</p>
           </div>
         </div>
       </div>
@@ -367,19 +367,19 @@ export default function ResultPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#0F172A]">
-        <div className="container mx-auto p-6 max-w-[1400px]">
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-2xl">⚠️</span>
+      <div className="min-h-screen bg-[#0E1117]">
+        <div className="w-full px-8 py-12">
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-[#F59E0B] to-[#D97706] rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">⚠️</span>
             </div>
-            <h2 className="text-xl font-semibold text-slate-50 mb-2">データが見つかりませんでした</h2>
-            <p className="text-slate-400 mb-6">
+            <h2 className="text-2xl font-semibold text-white mb-3">データが見つかりませんでした</h2>
+            <p className="text-slate-400 text-lg mb-8">
               指定されたID（{id}）の評価データが存在しません。<br />
               ダッシュボードから正しい結果ページにアクセスしてください。
             </p>
             <Link href="/dashboard">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5B5BE6] hover:to-[#7C3AED] text-white px-8 py-3 rounded-xl">
                 ダッシュボードに戻る
               </Button>
             </Link>
@@ -390,26 +390,26 @@ export default function ResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A]">
-      <div className="container mx-auto px-6 py-8 max-w-[1400px]">
+    <div className="min-h-screen bg-[#0E1117]">
+      <div className="w-full px-8 py-12">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-slate-50">評価結果</h1>
-            <p className="text-slate-400 mt-1">
+            <h1 className="text-4xl font-bold text-white">評価結果</h1>
+            <p className="text-slate-400 text-lg mt-2">
               {data.recording.scenario.title} • {format(new Date(data.recording.created_at), 'yyyy年MM月dd日 HH:mm', { locale: ja })}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Link href="/dashboard">
-              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-slate-50">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 px-6 py-3 rounded-xl">
+                <ArrowLeft className="mr-2 h-5 w-5" />
                 ダッシュボードへ
               </Button>
             </Link>
             <Link href="/record">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                <RefreshCw className="mr-2 h-4 w-4" />
+              <Button className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5B5BE6] hover:to-[#7C3AED] text-white px-6 py-3 rounded-xl">
+                <RefreshCw className="mr-2 h-5 w-5" />
                 もう一度録音
               </Button>
             </Link>
@@ -417,36 +417,36 @@ export default function ResultPage() {
         </div>
 
         {/* 総合スコアとダウンロードボタン */}
-        <Card className="bg-[#1E293B] border-[#334155] text-slate-50 mb-6 shadow-lg">
-          <CardContent className="pt-6">
+        <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 text-white mb-8 rounded-3xl shadow-2xl shadow-black/20">
+          <CardContent className="pt-8">
             <div className="flex items-center justify-between">
-              <div className="flex items-end gap-4">
+              <div className="flex items-end gap-6">
                 <div>
-                  <span className="text-6xl font-bold text-[#7C4DFF]">
+                  <span className="text-7xl font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                     {data.evaluation.total_score}
                   </span>
-                  <span className="text-2xl text-slate-400 ml-2">/ 100点</span>
+                  <span className="text-3xl text-slate-400 ml-3">/ 100点</span>
                 </div>
-                <div className="w-32 bg-slate-700 rounded-full h-3">
+                <div className="w-40 bg-[#0F111A] rounded-full h-4 border-2 border-[#374151]">
                   <div
-                    className="bg-[#7C4DFF] h-3 rounded-full transition-all duration-1000"
+                    className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] h-3 rounded-full transition-all duration-1000 mt-0.5"
                     style={{ width: `${data.evaluation.total_score}%` }}
                   />
                 </div>
               </div>
               <ReportDownload data={data} />
             </div>
-            <div className="mt-4 bg-slate-700 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2 text-slate-200">総評</h3>
-              <p className="text-slate-100 whitespace-pre-wrap">{data.evaluation.summary_comment}</p>
+            <div className="mt-6 bg-[#0F111A] p-6 rounded-2xl border border-[#374151]">
+              <h3 className="font-semibold mb-3 text-white text-lg">総評</h3>
+              <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">{data.evaluation.summary_comment}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* 上部3分割：理念・基本・シーン特有評価 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6" style={{ height: '600px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8" style={{ height: '600px' }}>
           {/* 理念評価（左上） */}
-          <Card className="bg-[#1E293B] border-[#334155] text-slate-50 overflow-hidden shadow-lg">
+          <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 text-white overflow-hidden shadow-2xl shadow-black/20 rounded-3xl">
             <CardHeader className="pb-4 border-b border-[#334155]">
               <div className="flex items-center gap-3">
                 <span className="w-5 h-5 inline-flex items-center justify-center text-slate-300">🏳️‍🌈</span>

@@ -3,25 +3,25 @@
 
 :root {
   /* ブランド配色（統一） */
-  --background: #0F172A; /* 深ネイビー */
+  --background: #0E1117; /* より深い黒に近い濃紺 */
   --foreground: #f8fafc;
-  --card: #1E293B; /* カード背景 */
+  --card: #1A1B26; /* カード背景 */
   --card-foreground: #f8fafc;
-  --popover: #1E293B;
+  --popover: #1A1B26;
   --popover-foreground: #f8fafc;
-  --primary: #7C4DFF; /* アクセント1（パープル） */
+  --primary: #6366F1; /* アクセント1（インディゴ） */
   --primary-foreground: #ffffff;
-  --secondary: #F59E0B; /* アクセント2（オレンジ） */
+  --secondary: #22D3EE; /* アクセント2（水色） */
   --secondary-foreground: #0F172A;
-  --muted: #334155;
+  --muted: #374151;
   --muted-foreground: #94a3b8;
-  --accent: #F59E0B; /* アクセント2として利用 */
+  --accent: #F59E0B; /* アクセント3（オレンジ） */
   --accent-foreground: #0F172A;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #334155;
-  --input: #334155;
-  --ring: #7C4DFF;
+  --border: #374151;
+  --input: #374151;
+  --ring: #6366F1;
   --radius: 0.75rem;
   
   /* 追加カラー */
@@ -139,6 +139,17 @@ body {
   }
 }
 
+@keyframes slideInFromBottom {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
 @keyframes pulse {
   0%, 100% { 
     opacity: 1; 
@@ -172,6 +183,14 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
+.animate-in {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.slide-in-from-bottom-2 {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
 .pulse-slow {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -200,6 +219,26 @@ body {
   background: #64748b;
 }
 
+/* ダッシュボード用カスタムスクロールバー */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1F2937;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #6366F1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5B5BE6;
+}
+
 /* フォーカススタイル */
 *:focus-visible {
   outline: 2px solid #6366f1;
@@ -209,7 +248,7 @@ body {
 
 /* 選択スタイル */
 ::selection {
-  background: #6366f1;
+  background: #6366F1;
   color: #ffffff;
 }
 
@@ -221,7 +260,7 @@ a {
 }
 
 a:hover {
-  color: #6366f1;
+  color: #6366F1;
 }
 
 /* タイポグラフィ改善 */
@@ -262,11 +301,12 @@ h1 {
 .react-calendar {
   width: 100%;
   max-width: 100%;
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 8px;
+  background: #0F111A;
+  border: 2px solid #374151;
+  border-radius: 16px;
   font-family: inherit;
   line-height: 1.125em;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .react-calendar--doubleView {
@@ -301,8 +341,8 @@ h1 {
 }
 
 .react-calendar button:enabled:hover {
-  background-color: #475569;
-  border-radius: 4px;
+  background-color: rgba(34, 211, 238, 0.1);
+  border-radius: 8px;
 }
 
 .react-calendar__navigation {
@@ -314,8 +354,10 @@ h1 {
 .react-calendar__navigation button {
   min-width: 44px;
   background: none;
-  color: #e2e8f0;
+  color: #9CA3AF;
   font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .react-calendar__navigation button:disabled {
@@ -325,16 +367,17 @@ h1 {
 
 .react-calendar__navigation button:enabled:hover,
 .react-calendar__navigation button:enabled:focus {
-  background-color: #475569;
-  border-radius: 4px;
+  background-color: rgba(34, 211, 238, 0.1);
+  border-radius: 8px;
+  color: #22D3EE;
 }
 
 .react-calendar__month-view__weekdays {
   text-align: center;
   text-transform: uppercase;
-  font-weight: bold;
-  font-size: 0.75em;
-  color: #9ca3af;
+  font-weight: 600;
+  font-size: 12px;
+  color: #6B7280;
 }
 
 .react-calendar__month-view__weekdays__weekday {
@@ -355,7 +398,7 @@ h1 {
 }
 
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #6b7280;
+  color: #4B5563;
 }
 
 .react-calendar__year-view .react-calendar__tile,
@@ -366,62 +409,64 @@ h1 {
 
 .react-calendar__tile {
   max-width: 100%;
-  padding: 10px 6.6667px;
+  padding: 8px;
   background: none;
   text-align: center;
   line-height: 16px;
   color: #e2e8f0;
   position: relative;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .react-calendar__tile:enabled:hover,
 .react-calendar__tile:enabled:focus {
-  background-color: #475569;
-  border-radius: 4px;
+  background-color: rgba(34, 211, 238, 0.1);
+  border-radius: 8px;
 }
 
 .react-calendar__tile--now {
-  background: #3b82f6;
+  background: #22D3EE;
   color: white;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .react-calendar__tile--now:enabled:hover,
 .react-calendar__tile--now:enabled:focus {
-  background: #2563eb;
+  background: #06B6D4;
 }
 
 .react-calendar__tile--hasActive {
-  background: #3b82f6;
+  background: #22D3EE;
   color: white;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .react-calendar__tile--hasActive:enabled:hover,
 .react-calendar__tile--hasActive:enabled:focus {
-  background: #2563eb;
+  background: #06B6D4;
 }
 
 .react-calendar__tile--active {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #22D3EE, #06B6D4) !important;
   color: white;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .react-calendar__tile--active:enabled:hover,
 .react-calendar__tile--active:enabled:focus {
-  background: #2563eb;
+  background: linear-gradient(135deg, #06B6D4, #0891B2) !important;
 }
 
 .react-calendar--selectRange .react-calendar__tile--hover {
-  background-color: #475569;
-  border-radius: 4px;
+  background-color: rgba(34, 211, 238, 0.1);
+  border-radius: 8px;
 }
 
 .react-calendar__tile--range {
-  background: #3b82f6;
+  background: #22D3EE;
   color: white;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .react-calendar__tile--rangeStart {
@@ -435,7 +480,7 @@ h1 {
 }
 
 .react-calendar__tile--rangeBothEnds {
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .react-calendar__year-view__months__month {
@@ -501,4 +546,40 @@ h1 {
   background: linear-gradient(90deg, transparent, #60a5fa, transparent);
   border-radius: 1px;
   animation: underlineExpand 0.3s ease-out;
+}
+
+/* ダッシュボード用の追加スタイル */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* グラデーションテキスト */
+.gradient-text {
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* カードのホバー効果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}
+
+/* ボタンのホバー効果 */
+.btn-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }

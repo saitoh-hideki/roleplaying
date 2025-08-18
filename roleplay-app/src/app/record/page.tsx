@@ -431,57 +431,57 @@ function RecordPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="min-h-screen bg-[#0E1117]">
+      <div className="w-full px-8 py-12">
         {/* ページタイトルと設定 */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-slate-50">🎙️ Roleplay Session Recorder</h1>
-          <div className="flex items-center space-x-3">
-            <Settings className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-400">Real-time Transcription</span>
+        <div className="flex items-center justify-between mb-12">
+          <h1 className="text-4xl font-bold text-white">🎙️ Roleplay Session Recorder</h1>
+          <div className="flex items-center space-x-4">
+            <Settings className="w-5 h-5 text-slate-400" />
+            <span className="text-base font-medium text-slate-400">Real-time Transcription</span>
             <Switch
               checked={realtimeEnabled}
               onCheckedChange={setRealtimeEnabled}
-              className="data-[state=checked]:bg-indigo-500 data-[state=unchecked]:bg-slate-600"
+              className="data-[state=checked]:bg-[#6366F1] data-[state=unchecked]:bg-[#374151]"
             />
           </div>
         </div>
 
         {/* メインコンテンツエリア */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* 左側: 録音コントロール */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* シーン選択カード */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0">
-              <div className="flex items-center space-x-2 mb-4">
-                <Play className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-lg font-semibold">🎭 Scene Selection</h2>
+            <div className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] text-white rounded-3xl p-8 shadow-2xl shadow-black/20 border-0">
+              <div className="flex items-center space-x-3 mb-6">
+                <Play className="w-6 h-6 text-[#6366F1]" />
+                <h2 className="text-xl font-semibold">🎭 Scene Selection</h2>
               </div>
               
               {/* 選択されたシーンの表示 */}
               {selectedScene && (
-                <div className="mb-4 p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-2xl">{selectedScene.icon}</span>
-                    <h3 className="font-semibold text-indigo-400">{selectedScene.title}</h3>
+                <div className="mb-6 p-6 bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 border-2 border-[#6366F1]/30 rounded-2xl">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <span className="text-3xl">{selectedScene.icon}</span>
+                    <h3 className="text-xl font-semibold text-[#6366F1]">{selectedScene.title}</h3>
                   </div>
-                  <p className="text-sm text-slate-300">{selectedScene.description}</p>
+                  <p className="text-base text-slate-300">{selectedScene.description}</p>
                 </div>
               )}
               
-              <p className="text-sm text-slate-400 mb-4">
+              <p className="text-base text-slate-400 mb-6">
                 {selectedScene ? 'Scene selected. Ready to start recording.' : 'Select a scene to practice'}
               </p>
               
               <Select value={selectedScene?.id || ''} onValueChange={handleSceneSelection}>
-                <SelectTrigger className="w-full border-2 border-slate-600 hover:border-indigo-400 focus:border-indigo-500 rounded-lg bg-slate-700 text-slate-50">
+                <SelectTrigger className="w-full border-2 border-[#374151] hover:border-[#6366F1] focus:border-[#6366F1] rounded-xl bg-[#0F111A] text-white py-4">
                   <SelectValue placeholder="Select a scene" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-600">
+                <SelectContent className="bg-[#1A1B26] border-[#374151]">
                   {scenes.map(scene => (
-                    <SelectItem key={scene.id} value={scene.id} className="text-slate-50 hover:bg-slate-700">
-                      <div className="flex items-center space-x-2">
-                        <span>{scene.icon}</span>
+                    <SelectItem key={scene.id} value={scene.id} className="text-white hover:bg-[#374151]">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">{scene.icon}</span>
                         <span>{scene.title}</span>
                       </div>
                     </SelectItem>
@@ -491,18 +491,18 @@ function RecordPageContent() {
             </div>
 
             {/* 録音コントロールカード */}
-            <div className="bg-slate-800 text-slate-50 rounded-xl p-6 shadow-lg border-0 flex flex-col items-center space-y-6">
+            <div className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] text-white rounded-3xl p-8 shadow-2xl shadow-black/20 border-0 flex flex-col items-center space-y-8">
               
               {/* タイトル */}
               <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">🎙️ Recording Controls</h2>
-                <p className="text-sm text-slate-400">
+                <h2 className="text-xl font-semibold mb-3">🎙️ Recording Controls</h2>
+                <p className="text-base text-slate-400">
                   {selectedScene ? 'Ready to start recording' : 'Please select a scene first'}
                 </p>
               </div>
               
               {/* 録音タイマー */}
-              <div className="text-4xl font-mono text-indigo-400 text-center bg-slate-700 px-6 py-4 rounded-xl border border-slate-600">
+              <div className="text-5xl font-mono text-[#6366F1] text-center bg-[#0F111A] px-8 py-6 rounded-2xl border-2 border-[#374151]">
                 {formatTime(recordingTime)}
               </div>
 
@@ -512,16 +512,16 @@ function RecordPageContent() {
                   <button
                     onClick={startRecording}
                     disabled={!selectedScene || isProcessing}
-                    className="flex items-center justify-center w-20 h-20 rounded-full border-4 border-indigo-500 hover:bg-indigo-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="flex items-center justify-center w-24 h-24 rounded-full border-4 border-[#6366F1] hover:bg-[#6366F1]/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-110"
                   >
-                    <Mic className="w-8 h-8 text-indigo-400" />
+                    <Mic className="w-10 h-10 text-[#6366F1]" />
                   </button>
                 ) : (
                   <button
                     onClick={stopRecording}
-                    className="flex items-center justify-center w-20 h-20 rounded-full border-4 border-red-500 bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 animate-pulse"
+                    className="flex items-center justify-center w-24 h-24 rounded-full border-4 border-red-500 bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 animate-pulse hover:scale-110"
                   >
-                    <MicOff className="w-8 h-8 text-red-400" />
+                    <MicOff className="w-10 h-10 text-red-400" />
                   </button>
                 )}
               </div>

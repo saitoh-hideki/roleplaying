@@ -259,104 +259,105 @@ export default function AdminScenesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-[#0E1117]">
+      <div className="w-full px-8 py-12">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-3xl font-bold text-slate-50">シーン管理</h1>
-            <p className="text-slate-400 mt-1">ロールプレイシーンの設定と評価基準の管理</p>
+            <h1 className="text-4xl font-bold text-white">シーン管理</h1>
+            <p className="text-slate-400 text-lg mt-2">ロールプレイシーンの設定と評価基準の管理</p>
           </div>
         </div>
 
         {/* フォーム */}
-        <Card className="bg-slate-800 border-slate-700 text-slate-50 mb-8">
-          <CardHeader>
-            <CardTitle className="text-slate-50">
+        <Card className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 text-white mb-12 rounded-3xl shadow-2xl shadow-black/20">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-white text-2xl">
               {editingId ? 'シーン編集' : '新規シーン作成'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-200">シーンID</label>
+                  <label className="block text-base font-medium mb-2 text-slate-200">シーンID</label>
                   <input
                     type="text"
                     value={formData.id}
                     onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                     placeholder="例: scene_010"
-                    className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                     required
                     disabled={!!editingId}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-200">アイコン</label>
+                  <label className="block text-base font-medium mb-2 text-slate-200">アイコン</label>
                   <input
                     type="text"
                     value={formData.icon}
                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                     placeholder="例: 💻"
-                    className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">シーンタイトル</label>
+                <label className="block text-base font-medium mb-2 text-slate-200">シーンタイトル</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="例: 初めての電話対応"
-                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">説明文</label>
+                <label className="block text-base font-medium mb-2 text-slate-200">説明文</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="シーン状況詳細を入力してください"
-                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                   rows={4}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-slate-200">GPT評価関数</label>
+                <label className="block text-base font-medium mb-2 text-slate-200">GPT評価関数</label>
                 <input
                   type="text"
                   value={formData.edge_function}
                   onChange={(e) => setFormData({ ...formData, edge_function: e.target.value })}
                   placeholder="例: evaluate_scene_010"
-                  className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-700 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                  className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                   required
                 />
               </div>
 
               {/* 基本評価項目の有効化設定 */}
-              <div className="border border-slate-600 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
+              <div className="border-2 border-[#374151] rounded-2xl p-6 bg-[#0F111A]">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="font-semibold text-slate-200">基本評価項目</h3>
-                    <p className="text-sm text-slate-400">すべてのシーン共通の評価観点</p>
+                    <h3 className="font-semibold text-white text-lg">基本評価項目</h3>
+                    <p className="text-slate-400">すべてのシーン共通の評価観点</p>
                   </div>
                   <Switch
                     checked={formData.basic_criteria_enabled}
                     onCheckedChange={(checked) => setFormData({ ...formData, basic_criteria_enabled: checked })}
+                    className="data-[state=checked]:bg-[#6366F1] data-[state=unchecked]:bg-[#374151]"
                   />
                 </div>
                 {formData.basic_criteria_enabled && (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {basicCriteria.map((criterion) => (
-                      <div key={criterion.id} className="flex items-center justify-between p-2 bg-slate-700 rounded">
-                        <span className="text-slate-200">{criterion.label}</span>
+                      <div key={criterion.id} className="flex items-center justify-between p-4 bg-[#1A1B26] rounded-xl border border-[#374151]">
+                        <span className="text-white">{criterion.label}</span>
                         <span className="text-xs text-slate-400">基本項目</span>
                       </div>
                     ))}
@@ -364,29 +365,28 @@ export default function AdminScenesPage() {
                 )}
               </div>
 
-              {/* シーン特有評価項目 */}
-              <div className="border border-slate-600 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
+              {/* シーン固有評価基準 */}
+              <div className="border-2 border-[#374151] rounded-2xl p-6 bg-[#0F111A]">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="font-semibold text-slate-200">シーン特有評価項目</h3>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {formData.evaluation_criteria.length}/10 項目
-                    </p>
+                    <h3 className="font-semibold text-white text-lg">シーン固有評価基準</h3>
+                    <p className="text-slate-400">このシーン特有の評価観点</p>
                   </div>
                   <Button
                     type="button"
                     onClick={addEvaluationCriterion}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                    disabled={formData.evaluation_criteria.length >= 10}
+                    className="bg-[#6366F1] hover:bg-[#5B5BE6] text-white px-4 py-2 rounded-xl"
                   >
-                    項目追加
+                    <Plus className="h-4 w-4 mr-2" />
+                    追加
                   </Button>
                 </div>
+                
                 <div className="space-y-4">
                   {formData.evaluation_criteria.map((criterion, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-700 rounded">
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#1A1B26] rounded-xl border border-[#374151]">
                       <div>
-                        <label className="block text-sm font-medium mb-1 text-slate-200">項目名</label>
+                        <label className="block text-sm font-medium mb-2 text-slate-200">項目名</label>
                         <input
                           type="text"
                           value={criterion.criterion_name}
@@ -396,11 +396,11 @@ export default function AdminScenesPage() {
                             setFormData({ ...formData, evaluation_criteria: newCriteria })
                           }}
                           placeholder="例: 挨拶"
-                          className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                          className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1 text-slate-200">説明</label>
+                        <label className="block text-sm font-medium mb-2 text-slate-200">説明</label>
                         <input
                           type="text"
                           value={criterion.criterion_description}
@@ -410,12 +410,12 @@ export default function AdminScenesPage() {
                             setFormData({ ...formData, evaluation_criteria: newCriteria })
                           }}
                           placeholder="例: 適切な挨拶ができているか"
-                          className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                          className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                         />
                       </div>
-                      <div className="flex items-end gap-2">
+                      <div className="flex items-end gap-3">
                         <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1 text-slate-200">最大点</label>
+                          <label className="block text-sm font-medium mb-2 text-slate-200">最大点</label>
                           <input
                             type="number"
                             value={criterion.max_score}
@@ -426,14 +426,14 @@ export default function AdminScenesPage() {
                             }}
                             min="1"
                             max="10"
-                            className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-slate-600 text-slate-50 focus:border-indigo-500 focus:outline-none"
+                            className="w-full px-4 py-3 border-2 border-[#374151] rounded-xl bg-[#0F111A] text-white focus:border-[#6366F1] focus:outline-none transition-colors"
                           />
                         </div>
                         {formData.evaluation_criteria.length > 1 && (
                           <Button
                             type="button"
                             onClick={() => removeEvaluationCriterion(index)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2"
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -444,12 +444,12 @@ export default function AdminScenesPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <div className="flex gap-3">
+                <Button type="submit" className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5B5BE6] hover:to-[#7C3AED] text-white px-8 py-3 rounded-xl">
                   {editingId ? '更新' : '作成'}
                 </Button>
                 {editingId && (
-                  <Button type="button" onClick={handleCancel} className="bg-slate-600 hover:bg-slate-700 text-white">
+                  <Button type="button" onClick={handleCancel} className="bg-[#374151] hover:bg-[#4B5563] text-white px-8 py-3 rounded-xl">
                     キャンセル
                   </Button>
                 )}
@@ -459,24 +459,24 @@ export default function AdminScenesPage() {
         </Card>
 
         {/* シーン一覧 */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {scenes.map(scene => {
             const sceneCriteria = evaluationCriteria.filter(c => c.scene_id === scene.id)
             
             return (
-              <Card key={scene.id} className="bg-slate-800 border-slate-700 text-slate-50">
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{scene.icon}</span>
-                      <h3 className="font-semibold text-lg text-slate-50">{scene.title}</h3>
+              <Card key={scene.id} className="bg-gradient-to-br from-[#1A1B26] to-[#1F2937] border-0 text-white rounded-3xl shadow-2xl shadow-black/20">
+                <CardContent className="pt-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl">{scene.icon}</span>
+                      <h3 className="font-semibold text-xl text-white">{scene.title}</h3>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(scene)}
-                        className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
+                        className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 rounded-xl"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -484,16 +484,16 @@ export default function AdminScenesPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(scene.id)}
-                        className="border-slate-600 text-slate-300 hover:bg-slate-600 hover:text-slate-50"
+                        className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 rounded-xl"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   
-                  <p className="text-slate-300 text-sm mb-3">{scene.description}</p>
+                  <p className="text-slate-300 text-base mb-4 leading-relaxed">{scene.description}</p>
                   
-                  <div className="text-xs text-slate-400 mb-3">
+                  <div className="text-sm text-slate-400 mb-4">
                     <span className="font-medium">評価関数:</span> {scene.edge_function}
                   </div>
 
