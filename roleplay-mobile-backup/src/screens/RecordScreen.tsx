@@ -12,7 +12,7 @@ import {
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
-import { Scenario } from '../types/database';
+import { Scene } from '../types/database';
 import {
   callWhisperAPI,
   callSceneEvaluationAPI,
@@ -27,7 +27,7 @@ export default function RecordScreen({ navigation, route }: any) {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
+  const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
   const [audioPermission, setAudioPermission] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -38,9 +38,9 @@ export default function RecordScreen({ navigation, route }: any) {
     // 音声録音の権限を確認
     checkAudioPermission();
     
-    // ルートパラメータからシナリオIDを取得
-    if (route.params?.scenarioId) {
-      fetchScenario(route.params.scenarioId);
+    // ルートパラメータからシーンIDを取得
+    if (route.params?.sceneId) {
+      fetchScene(route.params.sceneId);
     }
   }, [route.params]);
 
@@ -83,25 +83,25 @@ export default function RecordScreen({ navigation, route }: any) {
     };
   }, [isRecording]);
 
-  const fetchScenario = async (scenarioId: string) => {
+  const fetchScene = async (sceneId: string) => {
     try {
-      // Supabaseからシナリオデータを取得
+      // Supabaseからシーンデータを取得
       const { data, error } = await supabase
-        .from('scenarios')
+        .from('scenes')
         .select('*')
-        .eq('id', scenarioId)
+        .eq('id', sceneId)
         .single();
 
       if (error) {
-        console.error('Error fetching scenario:', error);
-        Alert.alert('エラー', 'シナリオデータの取得に失敗しました');
+        console.error('Error fetching scene:', error);
+        Alert.alert('エラー', 'シーンデータの取得に失敗しました');
         return;
       }
 
-      setSelectedScenario(data);
+      setSelectedScene(data);
     } catch (error) {
-      console.error('Error in fetchScenario:', error);
-      Alert.alert('エラー', 'シナリオデータの取得中にエラーが発生しました');
+      console.error('Error in fetchScene:', error);
+      Alert.alert('エラー', 'シーンデータの取得中にエラーが発生しました');
     }
   };
 
@@ -175,7 +175,7 @@ export default function RecordScreen({ navigation, route }: any) {
   };
 
   const handleRecordingComplete = async (uri: string | null) => {
-    if (!uri || !selectedScenario) return;
+    if (!uri || !selectedScene) return;
 
     Alert.alert(
       '録音完了',
@@ -199,14 +199,14 @@ export default function RecordScreen({ navigation, route }: any) {
   };
 
   const processRecording = async (audioUri: string) => {
-    if (!selectedScenario) return;
+    if (!selectedScene) return;
 
     setIsProcessing(true);
     
     try {
       // 1. 録音データをSupabaseに保存
       console.log('Saving recording to Supabase...');
-      const recordingId = await saveRecording(selectedScenario.id, audioUri);
+      const recordingId = await saveRecording(selectedScene.id, audioUri);
       console.log('Recording saved with ID:', recordingId);
 
       // 2. Whisper APIで文字起こし
@@ -221,7 +221,7 @@ export default function RecordScreen({ navigation, route }: any) {
       // 4. シーン評価APIを呼び出し
       console.log('Starting scene evaluation...');
       const evaluationResult = await callSceneEvaluationAPI(
-        selectedScenario.id,
+        selectedScene.id,
         recordingId,
         transcript
       );
@@ -232,7 +232,7 @@ export default function RecordScreen({ navigation, route }: any) {
         callPhilosophyEvaluationAPI(
           evaluationResult.evaluationId,
           transcript,
-          selectedScenario.id
+          selectedScene.id
         );
       } catch (error) {
         console.warn('Philosophy evaluation failed, but continuing:', error);
@@ -261,20 +261,20 @@ export default function RecordScreen({ navigation, route }: any) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!selectedScenario) {
+  if (!selectedScene) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#64748b" />
-          <Text style={styles.errorTitle}>シナリオが選択されていません</Text>
+          <Text style={styles.errorTitle}>シーンが選択されていません</Text>
           <Text style={styles.errorText}>
-            シナリオ選択画面から練習したいシナリオを選択してください。
+            シーン選択画面から練習したいシーンを選択してください。
           </Text>
           <TouchableOpacity
             style={styles.navigateButton}
             onPress={() => navigation.navigate('Scenes')}
           >
-            <Text style={styles.navigateButtonText}>シナリオ選択へ</Text>
+            <Text style={styles.navigateButtonText}>シーン選択へ</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -284,16 +284,16 @@ export default function RecordScreen({ navigation, route }: any) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* シナリオ情報 */}
+        {/* シーン情報 */}
         <View style={styles.sceneInfo}>
           <View style={styles.sceneHeader}>
             <View style={styles.sceneIconContainer}>
-              <Text style={styles.sceneIcon}>🎭</Text>
+              <Text style={styles.sceneIcon}>{selectedScene.icon || '🎭'}</Text>
             </View>
             <View style={styles.sceneDetails}>
-              <Text style={styles.sceneTitle}>{selectedScenario.title}</Text>
+              <Text style={styles.sceneTitle}>{selectedScene.title}</Text>
               <Text style={styles.sceneDescription} numberOfLines={2}>
-                {selectedScenario.description}
+                {selectedScene.description}
               </Text>
             </View>
           </View>

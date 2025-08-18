@@ -60,11 +60,7 @@ export default function ResultsScreen({ navigation, route }: any) {
         // 録音IDから録音データを取得
         const { data: recData, error: recError } = await supabase
           .from('recordings')
-          .select(`
-            *,
-            scenarios!recordings_scenario_id_fkey(*),
-            scenes!recordings_situation_id_fkey(*)
-          `)
+          .select('*')
           .eq('id', currentRecordingId)
           .single();
 
@@ -75,20 +71,20 @@ export default function ResultsScreen({ navigation, route }: any) {
         }
         recordingData = recData;
 
-        // シーンデータを取得（リレーションシップから取得）
-        if (recData.scenes) {
-          setScene(recData.scenes);
-        } else if (recData.scenarios) {
-          // scenariosテーブルのデータをscenesテーブルの形式に変換
-          setScene({
-            id: recData.scenarios.id,
-            title: recData.scenarios.title,
-            description: recData.scenarios.description,
-            edge_function: '',
-            icon: '🎭',
-            created_at: recData.scenarios.created_at,
-            updated_at: recData.scenarios.updated_at,
-          });
+        // シーンデータを取得
+        const sceneId = recData.situation_id || recData.scenario_id;
+        if (sceneId) {
+          const { data: sceneData, error: sceneError } = await supabase
+            .from('scenes')
+            .select('*')
+            .eq('id', sceneId)
+            .single();
+
+          if (sceneError) {
+            console.error('Error fetching scene:', sceneError);
+          } else {
+            setScene(sceneData);
+          }
         }
       }
 

@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { LogBox } from 'react-native';
 
 // 画面コンポーネント
 import HomeScreen from './src/screens/HomeScreen';
@@ -12,15 +11,9 @@ import RecordScreen from './src/screens/RecordScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 
-// 開発時の警告を無視
-LogBox.ignoreLogs(['Warning:']);
-
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  console.log('App starting...');
-  console.log('Supabase URL: https://navqkresgxxutahyljyx.supabase.co');
-  
   return (
     <NavigationContainer>
       <StatusBar style="light" backgroundColor="#0f172a" />
@@ -71,7 +64,7 @@ export default function App() {
         <Tab.Screen 
           name="Scenes" 
           component={ScenesScreen} 
-          options={{ title: 'シナリオ選択' }}
+          options={{ title: 'シーン選択' }}
         />
         <Tab.Screen 
           name="Record" 

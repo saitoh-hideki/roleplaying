@@ -22,10 +22,7 @@ export default function HistoryScreen({ navigation }: any) {
       try {
         const { data: recordingsData, error: recordingsError } = await supabase
           .from('recordings')
-          .select(`
-            *,
-            scenarios!recordings_scenario_id_fkey(*)
-          `);
+          .select('*');
         if (recordingsError) {
           throw recordingsError;
         }
@@ -186,11 +183,11 @@ export default function HistoryScreen({ navigation }: any) {
                 <View style={styles.recordingHeader}>
                   <View style={styles.sceneInfo}>
                     <Text style={styles.sceneIcon}>
-                      {getSceneIcon(recording.scenario_id || recording.situation_id || '')}
+                      {getSceneIcon(recording.situation_id || recording.scenario_id || '')}
                     </Text>
                     <View style={styles.sceneDetails}>
                       <Text style={styles.sceneTitle}>
-                        {getSceneTitle(recording.scenario_id || recording.situation_id || '')}
+                        {getSceneTitle(recording.situation_id || recording.scenario_id || '')}
                       </Text>
                       <Text style={styles.recordingDate}>
                         {formatDate(recording.created_at)}
@@ -206,7 +203,7 @@ export default function HistoryScreen({ navigation }: any) {
                       style={styles.retryButton}
                       onPress={() => {
                         // 再録音の処理
-                        navigation.navigate('Record', { sceneId: recording.scenario_id || recording.situation_id || '' });
+                        navigation.navigate('Record', { sceneId: recording.situation_id || recording.scenario_id || '' });
                       }}
                     >
                       <Ionicons name="refresh" size={16} color="#10B981" />
@@ -240,7 +237,7 @@ export default function HistoryScreen({ navigation }: any) {
                       style={styles.actionButton}
                       onPress={() => {
                         // 再録音の処理
-                        navigation.navigate('Record', { sceneId: recording.scenario_id || recording.situation_id || '' });
+                        navigation.navigate('Record', { sceneId: recording.situation_id || recording.scenario_id || '' });
                       }}
                     >
                       <Ionicons name="refresh" size={16} color="#10B981" />

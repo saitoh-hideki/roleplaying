@@ -2,12 +2,12 @@ import { supabase } from '../lib/supabase';
 import { SUPABASE_CONFIG, API_CONFIG, ERROR_MESSAGES } from '../config/supabase';
 
 // API呼び出しの基本設定
-const API_BASE_URL = 'https://navqkresgxxutahyljyx.supabase.co';
+const API_BASE_URL = SUPABASE_CONFIG.url;
 
 // 共通のヘッダー
 const getHeaders = () => ({
   'Content-Type': 'application/json',
-  'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hdnFrcmVzZ3h4dXRhaHlsanl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNjU0MjIsImV4cCI6MjA2OTk0MTQyMn0.FipT5gb0k239ujfPIDkp-O8YqeBOI6i0ge8ukz443ZA`,
+  'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
 });
 
 // エラーハンドリング
@@ -131,17 +131,17 @@ export const callPhilosophyEvaluationAPI = async (
 
 // 録音データの保存
 export const saveRecording = async (
-  scenarioId: string,
+  situationId: string,
   audioUrl: string,
   transcript?: string
 ): Promise<string> => {
   try {
-    console.log('Saving recording:', { scenarioId, audioUrl, hasTranscript: !!transcript });
+    console.log('Saving recording:', { situationId, audioUrl, hasTranscript: !!transcript });
     
     const { data, error } = await supabase
       .from('recordings')
       .insert({
-        scenario_id: scenarioId,
+        situation_id: situationId,
         audio_url: audioUrl,
         transcript: transcript || null,
       })
