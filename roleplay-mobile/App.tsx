@@ -71,7 +71,7 @@ export default function App() {
         <Tab.Screen 
           name="Scenes" 
           component={ScenesScreen} 
-          options={{ title: 'シナリオ選択' }}
+          options={{ title: 'シーン選択' }}
         />
         <Tab.Screen 
           name="Record" 

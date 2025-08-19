@@ -4,300 +4,367 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   SafeAreaView,
+  TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
-import { Evaluation, Recording, Scene } from '../types/database';
+import { getEvaluation } from '../utils/api';
 
-const { width } = Dimensions.get('window');
+interface ResultData {
+  recording: {
+    id: string
+    created_at: string
+    transcript: string
+    situation_id?: string
+    scenes: {
+      title: string
+      description: string
+    }
+  }
+  evaluation: {
+    id: string
+    total_score: number
+    summary_comment: string
+  }
+  feedbackNotes: {
+    id: string
+    score: number
+    comment: string
+    evaluation_criteria: {
+      label: string
+      description: string
+      max_score: number
+    }
+  }[]
+  philosophyFeedbackNotes?: {
+    id: string
+    score: number
+    comment: string
+    philosophy_evaluation_criteria: {
+      code: 'vision' | 'mission' | 'purpose'
+      label: string
+      description?: string
+      max_score: number
+    }
+  }[]
+  sceneFeedbackNotes: {
+    id: string
+    score: number
+    comment: string
+    scene_evaluation_criteria: {
+      criterion_name: string
+      criterion_description?: string
+      max_score: number
+    }
+  }[]
+  scene?: {
+    id: string
+    title: string
+    description: string
+  }
+}
 
 export default function ResultsScreen({ navigation, route }: any) {
-  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
-  const [recording, setRecording] = useState<Recording | null>(null);
-  const [scene, setScene] = useState<Scene | null>(null);
+  const { evaluationId, recordingId } = route.params;
+  const [data, setData] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // ルートパラメータから評価IDまたは録音IDを取得
-  const evaluationId = route.params?.evaluationId;
-  const recordingId = route.params?.recordingId;
+  const [showTranscript, setShowTranscript] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [evaluationId, recordingId]);
+    if (evaluationId) {
+      fetchResultData();
+    }
+  }, [evaluationId]);
 
-  const fetchData = async () => {
+  const fetchResultData = async () => {
     try {
-      setLoading(true);
+      console.log('Fetching result data for evaluation ID:', evaluationId);
       
-      let evaluationData: Evaluation | null = null;
-      let recordingData: Recording | null = null;
-      let currentRecordingId = recordingId;
-
-      if (evaluationId) {
-        // 評価IDから評価データを取得
-        const { data: evalData, error: evalError } = await supabase
-          .from('evaluations')
-          .select('*')
-          .eq('id', evaluationId)
-          .single();
-
-        if (evalError) {
-          console.error('Error fetching evaluation:', evalError);
-          Alert.alert('エラー', '評価データの取得に失敗しました');
-          return;
-        }
-        evaluationData = evalData;
-        currentRecordingId = evalData.recording_id;
+      // 評価データを取得
+      const evaluationData = await getEvaluation(evaluationId);
+      
+      if (!evaluationData) {
+        throw new Error('Evaluation data not found');
       }
 
-      if (currentRecordingId) {
-        // 録音IDから録音データを取得
-        const { data: recData, error: recError } = await supabase
-          .from('recordings')
-          .select(`
-            *,
-            scenarios!recordings_scenario_id_fkey(*),
-            scenes!recordings_situation_id_fkey(*)
-          `)
-          .eq('id', currentRecordingId)
-          .single();
+      // 録音データを取得
+      const { data: recording, error: recordingError } = await supabase
+        .from('recordings')
+        .select(`
+          id,
+          created_at,
+          transcript,
+          situation_id,
+          scenes (title, description)
+        `)
+        .eq('id', recordingId)
+        .single();
 
-        if (recError) {
-          console.error('Error fetching recording:', recError);
-          Alert.alert('エラー', '録音データの取得に失敗しました');
-          return;
-        }
-        recordingData = recData;
-
-        // シーンデータを取得（リレーションシップから取得）
-        if (recData.scenes) {
-          setScene(recData.scenes);
-        } else if (recData.scenarios) {
-          // scenariosテーブルのデータをscenesテーブルの形式に変換
-          setScene({
-            id: recData.scenarios.id,
-            title: recData.scenarios.title,
-            description: recData.scenarios.description,
-            edge_function: '',
-            icon: '🎭',
-            created_at: recData.scenarios.created_at,
-            updated_at: recData.scenarios.updated_at,
-          });
-        }
+      if (recordingError) {
+        console.error('Recording fetch error:', recordingError);
+        throw recordingError;
       }
 
-      setEvaluation(evaluationData);
-      setRecording(recordingData);
+      // シーンデータを取得
+      const { data: scene, error: sceneError } = await supabase
+        .from('scenes')
+        .select('id, title, description')
+        .eq('id', recording.situation_id)
+        .single();
 
+      if (sceneError) {
+        console.error('Scene fetch error:', sceneError);
+        throw sceneError;
+      }
+
+      // データを整形
+      const formattedData: ResultData = {
+        recording: {
+          ...recording,
+          scenes: {
+            title: (recording.scenes as any)?.title || 'シーンなし',
+            description: (recording.scenes as any)?.description || ''
+          }
+        },
+        evaluation: {
+          id: evaluationData.id,
+          total_score: evaluationData.total_score,
+          summary_comment: evaluationData.summary_comment
+        },
+        feedbackNotes: evaluationData.feedback_notes?.map((fn: any) => ({
+          ...fn,
+          evaluation_criteria: fn.evaluation_criteria || { label: '', description: '', max_score: 0 }
+        })) || [],
+        sceneFeedbackNotes: evaluationData.scene_feedback_notes?.map((sFn: any) => ({
+          ...sFn,
+          scene_evaluation_criteria: sFn.scene_evaluation_criteria || { criterion_name: '', criterion_description: '', max_score: 0 }
+        })) || [],
+        philosophyFeedbackNotes: evaluationData.philosophy_feedback_notes?.map((p: any) => ({
+          ...p,
+          philosophy_evaluation_criteria: p.philosophy_evaluation_criteria || { code: 'vision', label: '', description: '', max_score: 5 }
+        })) || [],
+        scene: scene
+      };
+
+      setData(formattedData);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      Alert.alert('エラー', 'データの取得中にエラーが発生しました');
+      console.error('Error fetching result data:', error);
+      Alert.alert(
+        'エラー',
+        `評価結果の取得に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#7C4DFF" />
-          <Text style={styles.loadingText}>データを読み込み中...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!evaluation || !recording) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#64748b" />
-          <Text style={styles.errorTitle}>評価データが見つかりません</Text>
-          <Text style={styles.errorText}>
-            指定されたIDの評価データが存在しません。
-          </Text>
-          <TouchableOpacity
-            style={styles.navigateButton}
-            onPress={() => navigation.navigate('History')}
-          >
-            <Text style={styles.navigateButtonText}>履歴に戻る</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   const getScoreColor = (score: number, maxScore: number) => {
     const percentage = (score / maxScore) * 100;
-    if (percentage >= 80) return '#10B981';
-    if (percentage >= 60) return '#F59E0B';
-    return '#EF4444';
+    if (percentage >= 80) return '#10b981';
+    if (percentage >= 60) return '#f59e0b';
+    return '#ef4444';
   };
 
   const getScoreBackgroundColor = (score: number, maxScore: number) => {
     const percentage = (score / maxScore) * 100;
-    if (percentage >= 80) return '#10B98120';
-    if (percentage >= 60) return '#F59E0B20';
-    return '#EF444420';
+    if (percentage >= 80) return '#d1fae5';
+    if (percentage >= 60) return '#fef3c7';
+    return '#fee2e2';
   };
 
-  const tabs = [
-    { id: 'overview', label: '概要', icon: 'pie-chart' },
-    { id: 'details', label: '詳細', icon: 'list' },
-    { id: 'transcript', label: '文字起こし', icon: 'document-text' },
-  ];
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7C4DFF" />
+          <Text style={styles.loadingText}>評価結果を読み込み中...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!data) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
+          <Text style={styles.errorTitle}>データが見つかりませんでした</Text>
+          <Text style={styles.errorText}>
+            指定された評価データが存在しません。
+          </Text>
+          <TouchableOpacity
+            style={styles.navigateButton}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.navigateButtonText}>ホームに戻る</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* ヘッダー */}
         <View style={styles.header}>
-          <View style={styles.sceneInfo}>
-            <Text style={styles.sceneIcon}>{scene?.icon || '🎭'}</Text>
-            <View style={styles.sceneDetails}>
-              <Text style={styles.sceneTitle}>{scene?.title || '不明なシーン'}</Text>
-              <Text style={styles.sceneDescription} numberOfLines={2}>
-                {scene?.description || ''}
-              </Text>
-            </View>
-          </View>
-          
-          {/* 総合スコア */}
-          <View style={styles.totalScoreContainer}>
-            <Text style={styles.totalScoreLabel}>総合スコア</Text>
-            <View style={styles.scoreDisplay}>
-              <Text style={styles.totalScore}>{evaluation.total_score}</Text>
-              <Text style={styles.totalScoreMax}>/ 100</Text>
-            </View>
-            <View style={styles.scoreBar}>
-              <View
-                style={[
-                  styles.scoreBarFill,
-                  {
-                    width: `${evaluation.total_score}%`,
-                    backgroundColor: getScoreColor(evaluation.total_score, 100),
-                  },
-                ]}
-              />
-            </View>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#7C4DFF" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>評価結果</Text>
+            <Text style={styles.subtitle}>
+              {data.recording.scenes.title} • {new Date(data.recording.created_at).toLocaleDateString('ja-JP')}
+            </Text>
           </View>
         </View>
 
-        {/* タブナビゲーション */}
-        <View style={styles.tabContainer}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
+        {/* 総合スコア */}
+        <View style={styles.scoreCard}>
+          <Text style={styles.scoreTitle}>総合スコア</Text>
+          <View style={styles.scoreContainer}>
+            <Text style={styles.totalScore}>{data.evaluation.total_score}</Text>
+            <Text style={styles.maxScore}>/ 100点</Text>
+          </View>
+          <View style={styles.progressBar}>
+            <View 
               style={[
-                styles.tabButton,
-                activeTab === tab.id && styles.tabButtonActive,
-              ]}
-              onPress={() => setActiveTab(tab.id as any)}
-            >
-              <Ionicons
-                name={tab.icon as any}
-                size={16}
-                color={activeTab === tab.id ? '#7C4DFF' : '#94a3b8'}
-                style={{ marginRight: 6 }}
-              />
-              <Text
-                style={[
-                  styles.tabButtonText,
-                  activeTab === tab.id && styles.tabButtonTextActive,
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                styles.progressFill, 
+                { width: `${data.evaluation.total_score}%` }
+              ]} 
+            />
+          </View>
+          <Text style={styles.summaryComment}>{data.evaluation.summary_comment}</Text>
         </View>
 
-        {/* タブコンテンツ */}
-        {activeTab === 'overview' && (
-          <View style={styles.tabContent}>
-            {/* 総評 */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>総評</Text>
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryText}>
-                  {evaluation.summary_comment || '評価コメントがありません'}
-                </Text>
-              </View>
-            </View>
-
-            {/* スコア分布 */}
-            <View style={styles.scoresContainer}>
-              <Text style={styles.scoresTitle}>評価項目別スコア</Text>
-              
-              <Text style={styles.noDataText}>
-                詳細なスコアデータは現在利用できません
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {activeTab === 'details' && (
-          <View style={styles.tabContent}>
-            {/* 詳細なフィードバック */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>詳細フィードバック</Text>
-              <Text style={styles.noDataText}>
-                詳細なフィードバックデータは現在利用できません
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {activeTab === 'transcript' && (
-          <View style={styles.tabContent}>
-            {/* 文字起こし結果 */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>文字起こし結果</Text>
-              <View style={styles.transcriptCard}>
-                <Text style={styles.transcriptText}>
-                  {recording.transcript || '文字起こしデータがありません'}
-                </Text>
-              </View>
-              
-              {/* 録音情報 */}
-              <View style={styles.recordingInfo}>
-                <View style={styles.infoItem}>
-                  <Ionicons name="calendar-outline" size={16} color="#94a3b8" />
-                  <Text style={styles.infoLabel}>録音日時:</Text>
-                  <Text style={styles.infoValue}>
-                    {new Date(recording.created_at).toLocaleDateString('ja-JP')}
-                  </Text>
+        {/* 基本評価 */}
+        {data.feedbackNotes.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>基本評価</Text>
+            {data.feedbackNotes.map((note, index) => (
+              <View key={note.id} style={styles.evaluationItem}>
+                <View style={styles.evaluationHeader}>
+                  <Text style={styles.criterionLabel}>{note.evaluation_criteria.label}</Text>
+                  <View style={[
+                    styles.scoreBadge,
+                    { backgroundColor: getScoreBackgroundColor(note.score, note.evaluation_criteria.max_score) }
+                  ]}>
+                    <Text style={[
+                      styles.scoreText,
+                      { color: getScoreColor(note.score, note.evaluation_criteria.max_score) }
+                    ]}>
+                      {note.score} / {note.evaluation_criteria.max_score}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={styles.criterionDescription}>{note.evaluation_criteria.description}</Text>
+                <Text style={styles.comment}>{note.comment}</Text>
               </View>
-            </View>
+            ))}
           </View>
         )}
+
+        {/* シーン特有評価 */}
+        {data.sceneFeedbackNotes.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {data.scene?.title || 'シーン'}特有評価
+            </Text>
+            {data.sceneFeedbackNotes.map((note, index) => (
+              <View key={note.id} style={styles.evaluationItem}>
+                <View style={styles.evaluationHeader}>
+                  <Text style={styles.criterionLabel}>{note.scene_evaluation_criteria.criterion_name}</Text>
+                  <View style={[
+                    styles.scoreBadge,
+                    { backgroundColor: getScoreBackgroundColor(note.score, note.scene_evaluation_criteria.max_score) }
+                  ]}>
+                    <Text style={[
+                      styles.scoreText,
+                      { color: getScoreColor(note.score, note.scene_evaluation_criteria.max_score) }
+                    ]}>
+                      {note.score} / {note.scene_evaluation_criteria.max_score}
+                    </Text>
+                  </View>
+                </View>
+                {note.scene_evaluation_criteria.criterion_description && (
+                  <Text style={styles.criterionDescription}>{note.scene_evaluation_criteria.criterion_description}</Text>
+                )}
+                <Text style={styles.comment}>{note.comment}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* 理念評価 */}
+        {data.philosophyFeedbackNotes && data.philosophyFeedbackNotes.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>理念評価（V/M/P）</Text>
+            {data.philosophyFeedbackNotes.map((note, index) => (
+              <View key={note.id} style={styles.evaluationItem}>
+                <View style={styles.evaluationHeader}>
+                  <Text style={styles.criterionLabel}>{note.philosophy_evaluation_criteria.label}</Text>
+                  <View style={[
+                    styles.scoreBadge,
+                    { backgroundColor: getScoreBackgroundColor(note.score, note.philosophy_evaluation_criteria.max_score) }
+                  ]}>
+                    <Text style={[
+                      styles.scoreText,
+                      { color: getScoreColor(note.score, note.philosophy_evaluation_criteria.max_score) }
+                    ]}>
+                      {note.score} / {note.philosophy_evaluation_criteria.max_score}
+                    </Text>
+                  </View>
+                </View>
+                {note.philosophy_evaluation_criteria.description && (
+                  <Text style={styles.criterionDescription}>{note.philosophy_evaluation_criteria.description}</Text>
+                )}
+                <Text style={styles.comment}>{note.comment}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* 文字起こし */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.transcriptHeader}
+            onPress={() => setShowTranscript(!showTranscript)}
+          >
+            <Text style={styles.sectionTitle}>録音内容（文字起こし）</Text>
+            <Ionicons 
+              name={showTranscript ? "chevron-up" : "chevron-down"} 
+              size={24} 
+              color="#7C4DFF" 
+            />
+          </TouchableOpacity>
+          {showTranscript && (
+            <View style={styles.transcriptContent}>
+              <Text style={styles.transcriptText}>{data.recording.transcript}</Text>
+            </View>
+          )}
+        </View>
 
         {/* アクションボタン */}
-        <View style={styles.actionContainer}>
+        <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('Record', { sceneId: scene?.id })}
+            onPress={() => navigation.navigate('Record')}
           >
-            <Ionicons name="refresh" size={20} color="white" />
-            <Text style={styles.actionButtonText}>同じシーンで再練習</Text>
+            <Ionicons name="mic" size={20} color="white" />
+            <Text style={styles.actionButtonText}>もう一度録音</Text>
           </TouchableOpacity>
-          
           <TouchableOpacity
             style={[styles.actionButton, styles.secondaryButton]}
-            onPress={() => navigation.navigate('Scenes')}
+            onPress={() => navigation.navigate('History')}
           >
-            <Ionicons name="list" size={20} color="#7C4DFF" />
-            <Text style={[styles.actionButtonText, { color: '#7C4DFF' }]}>
-              他のシーンを選択
-            </Text>
+            <Ionicons name="time" size={20} color="#7C4DFF" />
+            <Text style={[styles.actionButtonText, { color: '#7C4DFF' }]}>履歴を見る</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -310,7 +377,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f172a',
   },
-  centerContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#94a3b8',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -342,47 +422,44 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
     paddingTop: 10,
   },
-  sceneInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
+  backButton: {
+    padding: 8,
+    marginRight: 12,
   },
-  sceneIcon: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  sceneDetails: {
+  headerContent: {
     flex: 1,
   },
-  sceneTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#f8fafc',
-    marginBottom: 6,
-    lineHeight: 26,
   },
-  sceneDescription: {
-    fontSize: 16,
-    color: '#cbd5e1',
-    lineHeight: 22,
+  subtitle: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginTop: 4,
   },
-  totalScoreContainer: {
-    alignItems: 'center',
+  scoreCard: {
     backgroundColor: '#1e293b',
+    margin: 20,
+    marginTop: 0,
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
     borderColor: '#334155',
   },
-  totalScoreLabel: {
-    fontSize: 16,
-    color: '#94a3b8',
-    marginBottom: 8,
+  scoreTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#f8fafc',
+    marginBottom: 16,
   },
-  scoreDisplay: {
+  scoreContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
     marginBottom: 16,
@@ -392,245 +469,112 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#7C4DFF',
   },
-  totalScoreMax: {
+  maxScore: {
     fontSize: 20,
     color: '#94a3b8',
-    marginLeft: 4,
+    marginLeft: 8,
   },
-  scoreBar: {
-    width: '100%',
+  progressBar: {
     height: 8,
     backgroundColor: '#334155',
     borderRadius: 4,
+    marginBottom: 16,
     overflow: 'hidden',
   },
-  scoreBarFill: {
+  progressFill: {
     height: '100%',
+    backgroundColor: '#7C4DFF',
     borderRadius: 4,
   },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    gap: 8,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
-    backgroundColor: '#1e293b',
-  },
-  tabButtonActive: {
-    borderColor: '#7C4DFF',
-    backgroundColor: '#7C4DFF20',
-  },
-  tabButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#94a3b8',
-  },
-  tabButtonTextActive: {
-    color: '#7C4DFF',
-    fontWeight: '600',
-  },
-  tabContent: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#f8fafc',
-    marginBottom: 16,
-  },
-  summaryCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  summaryText: {
+  summaryComment: {
     fontSize: 16,
     color: '#cbd5e1',
     lineHeight: 24,
   },
-  scoresContainer: {
-    gap: 24,
+  section: {
+    margin: 20,
+    marginTop: 0,
   },
-  scoresTitle: {
-    fontSize: 20,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
     color: '#f8fafc',
     marginBottom: 16,
   },
-  scoreSection: {
-    gap: 16,
-  },
-  scoreSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#f8fafc',
-    marginBottom: 8,
-  },
-  scoreItem: {
+  evaluationItem: {
     backgroundColor: '#1e293b',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#334155',
   },
-  scoreItemHeader: {
+  evaluationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  scoreItemLabel: {
+  criterionLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#f8fafc',
     flex: 1,
   },
   scoreBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  scoreBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  scoreItemDescription: {
-    fontSize: 14,
-    color: '#94a3b8',
-    lineHeight: 20,
-  },
-  detailsContainer: {
-    gap: 16,
-  },
-  detailsTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#f8fafc',
-    marginBottom: 16,
-  },
-  feedbackCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'transparent',
   },
-  feedbackHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  feedbackLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#f8fafc',
-    flex: 1,
-  },
-  feedbackScore: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  feedbackScoreText: {
-    fontSize: 12,
+  scoreText: {
+    fontSize: 14,
     fontWeight: '600',
   },
-  feedbackDescription: {
+  criterionDescription: {
     fontSize: 14,
     color: '#94a3b8',
     marginBottom: 12,
     lineHeight: 20,
   },
-  feedbackComment: {
-    backgroundColor: '#334155',
-    borderRadius: 8,
-    padding: 12,
-  },
-  feedbackCommentLabel: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  feedbackCommentText: {
+  comment: {
     fontSize: 14,
     color: '#cbd5e1',
     lineHeight: 20,
   },
-  transcriptContainer: {
-    gap: 16,
+  transcriptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  transcriptTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#f8fafc',
-    marginBottom: 8,
-  },
-  transcriptCard: {
+  transcriptContent: {
     backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#334155',
   },
   transcriptText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#cbd5e1',
-    lineHeight: 24,
+    lineHeight: 20,
   },
-  recordingInfo: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#334155',
-    gap: 12,
-  },
-  infoItem: {
+  actionButtons: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#f8fafc',
-    fontWeight: '500',
-  },
-  actionContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
     gap: 12,
+    margin: 20,
+    marginTop: 0,
   },
   actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
     backgroundColor: '#7C4DFF',
+    paddingVertical: 16,
+    borderRadius: 12,
     gap: 8,
   },
   secondaryButton: {
@@ -639,19 +583,8 @@ const styles = StyleSheet.create({
     borderColor: '#7C4DFF',
   },
   actionButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#94a3b8',
-    marginTop: 10,
-  },
-  noDataText: {
-    fontSize: 16,
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginTop: 10,
   },
 });

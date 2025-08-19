@@ -12,12 +12,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
-import type { Scenario, Recording, Evaluation } from '../types/database';
+import type { Scene, Recording, Evaluation } from '../types/database';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }: any) {
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [scenes, setScenes] = useState<Scene[]>([]);
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,59 +49,34 @@ export default function HomeScreen({ navigation }: any) {
         console.log('テーブル一覧取得エラー:', error);
       }
       
-      // 1. まず基本的なシナリオデータを取得
-      console.log('1. シナリオデータを取得中...');
-      const { data: scenariosData, error: scenariosError } = await supabase
-        .from('scenarios')
+      // 1. まず基本的なシーンデータを取得
+      console.log('1. シーンデータを取得中...');
+      const { data: scenesData, error: scenesError } = await supabase
+        .from('scenes')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: true });
 
-      console.log('シナリオデータ結果:', { data: scenariosData, error: scenariosError });
+      console.log('シーンデータ結果:', { data: scenesData, error: scenesError });
 
-      if (scenariosError) {
-        console.error('Error fetching scenarios:', scenariosError);
+      if (scenesError) {
+        console.error('Error fetching scenes:', scenesError);
         console.error('Error details:', {
-          code: scenariosError.code,
-          message: scenariosError.message,
-          details: scenariosError.details,
-          hint: scenariosError.hint
+          code: scenesError.code,
+          message: scenesError.message,
+          details: scenesError.details,
+          hint: scenesError.hint
         });
       } else {
-        setScenarios(scenariosData || []);
+        setScenes(scenesData || []);
       }
 
-      // 1.5. scenesテーブルも試してみる
-      console.log('1.5. scenesテーブルも試してみる...');
-      try {
-        const { data: scenesData, error: scenesError } = await supabase
-          .from('scenes')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        console.log('scenesテーブル結果:', { data: scenesData, error: scenesError });
-        if (scenesData && scenesData.length > 0) {
-          console.log('scenesテーブルにデータがあります！');
-          // scenesテーブルにデータがある場合は、それを使用
-          setScenarios(scenesData.map(scene => ({
-            id: scene.id,
-            title: scene.title,
-            description: scene.description,
-            related_manual_id: undefined,
-            created_at: scene.created_at,
-            updated_at: scene.updated_at
-          })));
-        }
-      } catch (error) {
-        console.log('scenesテーブル取得エラー:', error);
-      }
-
-      // 2. 録音データを取得（シナリオ情報も含めて）
+      // 2. 録音データを取得（シーン情報も含めて）
       console.log('2. 録音データを取得中...');
       const { data: recordingsData, error: recordingsError } = await supabase
         .from('recordings')
         .select(`
           *,
-          scenarios!recordings_scenario_id_fkey(*)
+          scenes (*)
         `)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -128,7 +103,7 @@ export default function HomeScreen({ navigation }: any) {
           *,
           recordings!evaluations_recording_id_fkey(
             *,
-            scenarios!recordings_scenario_id_fkey(*)
+            scenes (*)
           )
         `)
         .order('created_at', { ascending: false })
@@ -149,7 +124,7 @@ export default function HomeScreen({ navigation }: any) {
       }
 
       console.log('=== 最終結果 ===');
-      console.log('シナリオ数:', scenariosData?.length || 0);
+      console.log('シーン数:', scenesData?.length || 0);
       console.log('録音数:', recordingsData?.length || 0);
       console.log('評価数:', evaluationsData?.length || 0);
 
@@ -163,21 +138,21 @@ export default function HomeScreen({ navigation }: any) {
   const recentRecordings = recordings.slice(0, 3);
   const recentEvaluations = evaluations.slice(0, 3);
 
-  const getCategoryColor = (scenarioId: string) => {
-    // シナリオIDに基づいてカテゴリを判定
-    if (scenarioId.includes('001') || scenarioId.includes('002') || scenarioId.includes('003')) {
+  const getCategoryColor = (sceneId: string) => {
+    // シーンIDに基づいてカテゴリを判定
+    if (sceneId.includes('001') || sceneId.includes('002') || sceneId.includes('003')) {
       return '#3b82f6'; // 基本
-    } else if (scenarioId.includes('004') || scenarioId.includes('005') || scenarioId.includes('006')) {
+    } else if (sceneId.includes('004') || sceneId.includes('005') || sceneId.includes('006')) {
       return '#10b981'; // 応用
     } else {
       return '#f59e0b'; // 特別
     }
   };
 
-  const getCategoryLabel = (scenarioId: string) => {
-    if (scenarioId.includes('001') || scenarioId.includes('002') || scenarioId.includes('003')) {
+  const getCategoryLabel = (sceneId: string) => {
+    if (sceneId.includes('001') || sceneId.includes('002') || sceneId.includes('003')) {
       return '基本';
-    } else if (scenarioId.includes('004') || scenarioId.includes('005') || scenarioId.includes('006')) {
+    } else if (sceneId.includes('004') || sceneId.includes('005') || sceneId.includes('006')) {
       return '応用';
     } else {
       return '特別';
@@ -228,7 +203,7 @@ export default function HomeScreen({ navigation }: any) {
               style={styles.gradientButton}
             >
               <Ionicons name="list" size={24} color="white" />
-              <Text style={styles.quickActionText}>シナリオ選択</Text>
+              <Text style={styles.quickActionText}>シーン選択</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -237,8 +212,8 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Ionicons name="play-circle" size={24} color="#7C4DFF" />
-            <Text style={styles.statNumber}>{scenarios.length}</Text>
-            <Text style={styles.statLabel}>利用可能シナリオ</Text>
+            <Text style={styles.statNumber}>{scenes.length}</Text>
+            <Text style={styles.statLabel}>利用可能シーン</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="mic" size={24} color="#10B981" />
@@ -260,48 +235,48 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.debugCard}>
             <Text style={styles.debugText}>Supabase URL: 設定済み</Text>
             <Text style={styles.debugText}>Supabase Key: 設定済み</Text>
-            <Text style={styles.debugText}>シナリオ数: {scenarios.length}</Text>
+            <Text style={styles.debugText}>シーン数: {scenes.length}</Text>
             <Text style={styles.debugText}>録音数: {recordings.length}</Text>
             <Text style={styles.debugText}>評価数: {evaluations.length}</Text>
           </View>
         </View>
 
-        {/* 最近の練習シナリオ */}
+        {/* 最近の練習シーン */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>最近の練習シナリオ</Text>
+            <Text style={styles.sectionTitle}>最近の練習シーン</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Scenes')}>
               <Text style={styles.seeAllText}>すべて見る</Text>
             </TouchableOpacity>
           </View>
-          {scenarios.length > 0 ? (
+          {scenes.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {scenarios.slice(0, 3).map((scenario) => (
+              {scenes.slice(0, 3).map((scene) => (
                 <TouchableOpacity
-                  key={scenario.id}
+                  key={scene.id}
                   style={styles.sceneCard}
-                  onPress={() => navigation.navigate('Record', { scenarioId: scenario.id })}
+                  onPress={() => navigation.navigate('Record', { sceneId: scene.id })}
                 >
                   <View style={styles.sceneIconContainer}>
-                    <Text style={styles.sceneIcon}>🎭</Text>
+                    <Text style={styles.sceneIcon}>{scene.icon || '🎭'}</Text>
                   </View>
                   <Text style={styles.sceneTitle} numberOfLines={2}>
-                    {scenario.title}
+                    {scene.title}
                   </Text>
                   <View style={styles.sceneMeta}>
                     <View
                       style={[
                         styles.categoryBadge,
-                        { backgroundColor: getCategoryColor(scenario.id) + '20' },
+                        { backgroundColor: getCategoryColor(scene.id) + '20' },
                       ]}
                     >
                       <Text
                         style={[
                           styles.categoryText,
-                          { color: getCategoryColor(scenario.id) },
+                          { color: getCategoryColor(scene.id) },
                         ]}
                       >
-                        {getCategoryLabel(scenario.id)}
+                        {getCategoryLabel(scene.id)}
                       </Text>
                     </View>
                   </View>
@@ -311,8 +286,8 @@ export default function HomeScreen({ navigation }: any) {
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="list-outline" size={48} color="#64748b" />
-              <Text style={styles.emptyStateText}>シナリオがありません</Text>
-              <Text style={styles.emptyStateSubtext}>シナリオを追加して練習を始めましょう</Text>
+              <Text style={styles.emptyStateText}>シーンがありません</Text>
+              <Text style={styles.emptyStateSubtext}>シーンを追加して練習を始めましょう</Text>
             </View>
           )}
         </View>
@@ -327,7 +302,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
           {recentRecordings.length > 0 ? (
             recentRecordings.map((recording) => {
-              const scenario = (recording as any).scenarios;
+              const scene = (recording as any).scenes;
               return (
                 <TouchableOpacity
                   key={recording.id}
@@ -336,7 +311,7 @@ export default function HomeScreen({ navigation }: any) {
                 >
                   <View style={styles.recordingHeader}>
                     <Text style={styles.recordingTitle}>
-                      {scenario?.title || '不明なシナリオ'}
+                      {scene?.title || '不明なシーン'}
                     </Text>
                     <Text style={styles.recordingTime}>
                       {'--:--'}
@@ -371,7 +346,7 @@ export default function HomeScreen({ navigation }: any) {
           {recentEvaluations.length > 0 ? (
             recentEvaluations.map((evaluation) => {
               const recording = (evaluation as any).recordings;
-              const scenario = recording?.scenarios;
+              const scene = recording?.scenes;
               return (
                 <TouchableOpacity
                   key={evaluation.id}
@@ -380,7 +355,7 @@ export default function HomeScreen({ navigation }: any) {
                 >
                   <View style={styles.evaluationHeader}>
                     <Text style={styles.evaluationTitle}>
-                      {scenario?.title || '不明なシナリオ'}
+                      {scene?.title || '不明なシーン'}
                     </Text>
                     <View style={styles.scoreContainer}>
                       <Text style={styles.scoreText}>{evaluation.total_score}</Text>

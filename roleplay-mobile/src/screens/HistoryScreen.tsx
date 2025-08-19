@@ -10,34 +10,56 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
-import { Recording, Scene } from '../types/database';
+
+interface Recording {
+  id: string;
+  created_at: string;
+  transcript: string;
+  situation_id: string;
+  scenes: {
+    title: string;
+    description: string;
+    icon: string;
+  };
+}
 
 export default function HistoryScreen({ navigation }: any) {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [recordings, setRecordings] = useState<Recording[]>([]);
-  const [scenes, setScenes] = useState<Scene[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Webアプリと同じデータ構造で録音データを取得
         const { data: recordingsData, error: recordingsError } = await supabase
           .from('recordings')
           .select(`
-            *,
-            scenarios!recordings_scenario_id_fkey(*)
-          `);
+            id,
+            created_at,
+            transcript,
+            situation_id,
+            scenes (title, description, icon)
+          `)
+          .order('created_at', { ascending: false });
+
         if (recordingsError) {
           throw recordingsError;
         }
-        setRecordings(recordingsData as Recording[]);
-
-        const { data: scenesData, error: scenesError } = await supabase
-          .from('scenes')
-          .select('*');
-        if (scenesError) {
-          throw scenesError;
-        }
-        setScenes(scenesData as Scene[]);
+        
+        // 型を正しく変換
+        const formattedRecordings: Recording[] = (recordingsData || []).map((recording: any) => ({
+          id: recording.id,
+          created_at: recording.created_at,
+          transcript: recording.transcript,
+          situation_id: recording.situation_id,
+          scenes: {
+            title: (recording.scenes as any)?.title || '不明なシーン',
+            description: (recording.scenes as any)?.description || '',
+            icon: (recording.scenes as any)?.icon || '🎭'
+          }
+        }));
+        
+        setRecordings(formattedRecordings);
       } catch (error) {
         Alert.alert('エラー', 'データの読み込みに失敗しました。');
         console.error(error);
@@ -69,12 +91,6 @@ export default function HistoryScreen({ navigation }: any) {
     }
   };
 
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP', {
@@ -85,13 +101,11 @@ export default function HistoryScreen({ navigation }: any) {
     });
   };
 
-  const getSceneIcon = (sceneId: string) => {
-    const scene = scenes.find(s => s.id === sceneId);
+  const getSceneIcon = (scene: any) => {
     return scene?.icon || '🎭';
   };
 
-  const getSceneTitle = (sceneId: string) => {
-    const scene = scenes.find(s => s.id === sceneId);
+  const getSceneTitle = (scene: any) => {
     return scene?.title || '不明なシーン';
   };
 
@@ -156,9 +170,9 @@ export default function HistoryScreen({ navigation }: any) {
           <View style={styles.statCard}>
             <Ionicons name="time" size={24} color="#F59E0B" />
             <Text style={styles.statNumber}>
-              {recordings.length > 0 ? recordings.length : 0}
+              {recordings.filter(r => !r.transcript).length}
             </Text>
-            <Text style={styles.statLabel}>総録音時間</Text>
+            <Text style={styles.statLabel}>評価待ち</Text>
           </View>
         </View>
 
@@ -186,11 +200,11 @@ export default function HistoryScreen({ navigation }: any) {
                 <View style={styles.recordingHeader}>
                   <View style={styles.sceneInfo}>
                     <Text style={styles.sceneIcon}>
-                      {getSceneIcon(recording.scenario_id || recording.situation_id || '')}
+                      {getSceneIcon(recording.scenes)}
                     </Text>
                     <View style={styles.sceneDetails}>
                       <Text style={styles.sceneTitle}>
-                        {getSceneTitle(recording.scenario_id || recording.situation_id || '')}
+                        {getSceneTitle(recording.scenes)}
                       </Text>
                       <Text style={styles.recordingDate}>
                         {formatDate(recording.created_at)}
@@ -204,10 +218,9 @@ export default function HistoryScreen({ navigation }: any) {
                     </Text>
                     <TouchableOpacity
                       style={styles.retryButton}
-                      onPress={() => {
-                        // 再録音の処理
-                        navigation.navigate('Record', { sceneId: recording.scenario_id || recording.situation_id || '' });
-                      }}
+                      onPress={() => 
+                        navigation.navigate('Record', { sceneId: recording.situation_id })
+                      }
                     >
                       <Ionicons name="refresh" size={16} color="#10B981" />
                       <Text style={[styles.actionButtonText, { color: '#10B981' }]}>
@@ -238,10 +251,9 @@ export default function HistoryScreen({ navigation }: any) {
                   {recording.transcript && (
                     <TouchableOpacity
                       style={styles.actionButton}
-                      onPress={() => {
-                        // 再録音の処理
-                        navigation.navigate('Record', { sceneId: recording.scenario_id || recording.situation_id || '' });
-                      }}
+                      onPress={() => 
+                        navigation.navigate('Record', { sceneId: recording.situation_id })
+                      }
                     >
                       <Ionicons name="refresh" size={16} color="#10B981" />
                       <Text style={[styles.actionButtonText, { color: '#10B981' }]}>

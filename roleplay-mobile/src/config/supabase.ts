@@ -56,6 +56,7 @@ export const ERROR_MESSAGES = {
   PROCESSING_ERROR: '録音の処理中にエラーが発生しました。',
   TRANSCRIPTION_ERROR: '文字起こしの処理中にエラーが発生しました。',
   EVALUATION_ERROR: '評価の処理中にエラーが発生しました。',
+  SCENE_ERROR: 'シーンデータの取得中にエラーが発生しました。',
 };
 
 // API設定
@@ -95,9 +96,9 @@ export const API_CONFIG = {
 
 // データベース設定
 export const DATABASE_CONFIG = {
-  // テーブル名
+  // テーブル名（Webアプリと同じ）
   tables: {
-    scenes: 'scenes',
+    scenes: 'scenes',                    // scenarios ではなく scenes
     recordings: 'recordings',
     evaluations: 'evaluations',
     feedbackNotes: 'feedback_notes',

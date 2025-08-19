@@ -8,11 +8,12 @@ export interface Manual {
   updated_at: string
 }
 
-export interface Scenario {
+export interface Scene {
   id: string
   title: string
   description: string
-  related_manual_id?: string
+  icon: string
+  edge_function: string
   created_at: string
   updated_at: string
 }
@@ -28,10 +29,11 @@ export interface EvaluationCriterion {
 
 export interface Recording {
   id: string
-  scenario_id: string
+  situation_id: string
   audio_url: string
   transcript?: string
   created_at: string
+  scene?: Scene
 }
 
 export interface Evaluation {
@@ -77,10 +79,10 @@ export type Database = {
         Insert: Omit<Manual, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Manual, 'id' | 'created_at' | 'updated_at'>>
       }
-      scenarios: {
-        Row: Scenario
-        Insert: Omit<Scenario, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Scenario, 'id' | 'created_at' | 'updated_at'>>
+      scenes: {
+        Row: Scene
+        Insert: Omit<Scene, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Scene, 'id' | 'created_at' | 'updated_at'>>
       }
       evaluation_criteria: {
         Row: EvaluationCriterion

@@ -12,13 +12,20 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
-import { Scenario } from '../types/database';
 
 const { width } = Dimensions.get('window');
 
+interface Scene {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  edge_function: string;
+}
+
 export default function ScenesScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [scenes, setScenes] = useState<Scene[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const categories = [
@@ -28,70 +35,70 @@ export default function ScenesScreen({ navigation }: any) {
   ];
 
   useEffect(() => {
-    fetchScenarios();
+    fetchScenes();
   }, []);
 
-  const fetchScenarios = async () => {
+  const fetchScenes = async () => {
     try {
       setIsLoading(true);
       
-      // Supabaseからシナリオデータを取得
+      // Webアプリと同じscenesテーブルからデータを取得
       const { data, error } = await supabase
-        .from('scenarios')
+        .from('scenes')
         .select('*')
-        .order('created_at', { ascending: true });
+        .order('id', { ascending: true });
 
       if (error) {
-        console.error('Error fetching scenarios:', error);
-        Alert.alert('エラー', 'シナリオデータの取得に失敗しました');
+        console.error('Error fetching scenes:', error);
+        Alert.alert('エラー', 'シーンデータの取得に失敗しました');
         return;
       }
 
-      setScenarios(data || []);
+      setScenes(data || []);
     } catch (error) {
-      console.error('Error in fetchScenarios:', error);
-      Alert.alert('エラー', 'シナリオデータの取得中にエラーが発生しました');
+      console.error('Error in fetchScenes:', error);
+      Alert.alert('エラー', 'シーンデータの取得中にエラーが発生しました');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredScenarios = selectedCategory
-    ? scenarios.filter(scenario => {
-        // シナリオIDに基づいてカテゴリを判定
+  const filteredScenes = selectedCategory
+    ? scenes.filter(scene => {
+        // シーンIDに基づいてカテゴリを判定
         if (selectedCategory === 'basic') {
-          return scenario.id.includes('001') || scenario.id.includes('002') || scenario.id.includes('003');
+          return scene.id.includes('001') || scene.id.includes('002') || scene.id.includes('003');
         } else if (selectedCategory === 'advanced') {
-          return scenario.id.includes('004') || scenario.id.includes('005') || scenario.id.includes('006');
+          return scene.id.includes('004') || scene.id.includes('005') || scene.id.includes('006');
         } else if (selectedCategory === 'special') {
-          return scenario.id.includes('007') || scenario.id.includes('008') || scenario.id.includes('009');
+          return scene.id.includes('007') || scene.id.includes('008') || scene.id.includes('009');
         }
         return false;
       })
-    : scenarios;
+    : scenes;
 
-  const getCategoryColor = (scenarioId: string) => {
-    if (scenarioId.includes('001') || scenarioId.includes('002') || scenarioId.includes('003')) {
+  const getCategoryColor = (sceneId: string) => {
+    if (sceneId.includes('001') || sceneId.includes('002') || sceneId.includes('003')) {
       return '#3b82f6'; // 基本
-    } else if (scenarioId.includes('004') || scenarioId.includes('005') || scenarioId.includes('006')) {
+    } else if (sceneId.includes('004') || sceneId.includes('005') || sceneId.includes('006')) {
       return '#10b981'; // 応用
     } else {
       return '#f59e0b'; // 特別
     }
   };
 
-  const getCategoryLabel = (scenarioId: string) => {
-    if (scenarioId.includes('001') || scenarioId.includes('002') || scenarioId.includes('003')) {
+  const getCategoryLabel = (sceneId: string) => {
+    if (sceneId.includes('001') || sceneId.includes('002') || sceneId.includes('003')) {
       return '基本';
-    } else if (scenarioId.includes('004') || scenarioId.includes('005') || scenarioId.includes('006')) {
+    } else if (sceneId.includes('004') || sceneId.includes('005') || sceneId.includes('006')) {
       return '応用';
     } else {
       return '特別';
     }
   };
 
-  const handleScenarioPress = (scenarioId: string) => {
-    navigation.navigate('Record', { scenarioId });
+  const handleScenePress = (sceneId: string) => {
+    navigation.navigate('Record', { sceneId: sceneId });
   };
 
   if (isLoading) {
@@ -99,7 +106,7 @@ export default function ScenesScreen({ navigation }: any) {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#7C4DFF" />
-          <Text style={styles.loadingText}>シナリオを読み込み中...</Text>
+          <Text style={styles.loadingText}>シーンを読み込み中...</Text>
         </View>
       </SafeAreaView>
     );
@@ -110,9 +117,9 @@ export default function ScenesScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ヘッダー */}
         <View style={styles.header}>
-          <Text style={styles.title}>練習シナリオ選択</Text>
+          <Text style={styles.title}>練習シーン選択</Text>
           <Text style={styles.subtitle}>
-            練習したいシナリオを選択して、ロールプレイを開始しましょう
+            練習したいシーンを選択して、ロールプレイを開始しましょう
           </Text>
         </View>
 
@@ -165,48 +172,48 @@ export default function ScenesScreen({ navigation }: any) {
           </ScrollView>
         </View>
 
-        {/* シナリオ一覧 */}
+        {/* シーン一覧 */}
         <View style={styles.scenesContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.label}シナリオ` : 'すべてのシナリオ'}
+              {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.label}シーン` : 'すべてのシーン'}
             </Text>
             <Text style={styles.sectionCount}>
-              {filteredScenarios.length}件
+              {filteredScenes.length}件
             </Text>
           </View>
 
-          {filteredScenarios.length > 0 ? (
-            filteredScenarios.map((scenario) => (
+          {filteredScenes.length > 0 ? (
+            filteredScenes.map((scene) => (
               <TouchableOpacity
-                key={scenario.id}
+                key={scene.id}
                 style={styles.sceneCard}
-                onPress={() => handleScenarioPress(scenario.id)}
+                onPress={() => handleScenePress(scene.id)}
               >
                 <View style={styles.sceneHeader}>
                   <View style={styles.sceneIconContainer}>
-                    <Text style={styles.sceneIcon}>🎭</Text>
+                    <Text style={styles.sceneIcon}>{scene.icon || '🎭'}</Text>
                   </View>
                   <View style={styles.sceneInfo}>
-                    <Text style={styles.sceneTitle}>{scenario.title}</Text>
+                    <Text style={styles.sceneTitle}>{scene.title}</Text>
                     <Text style={styles.sceneDescription} numberOfLines={2}>
-                      {scenario.description}
+                      {scene.description}
                     </Text>
                   </View>
                   <View style={styles.sceneMeta}>
                     <View
                       style={[
                         styles.categoryBadge,
-                        { backgroundColor: getCategoryColor(scenario.id) + '20' },
+                        { backgroundColor: getCategoryColor(scene.id) + '20' },
                       ]}
                     >
                       <Text
                         style={[
                           styles.categoryText,
-                          { color: getCategoryColor(scenario.id) },
+                          { color: getCategoryColor(scene.id) },
                         ]}
                       >
-                        {getCategoryLabel(scenario.id)}
+                        {getCategoryLabel(scene.id)}
                       </Text>
                     </View>
                   </View>
@@ -227,9 +234,9 @@ export default function ScenesScreen({ navigation }: any) {
                   <TouchableOpacity
                     style={[
                       styles.startButton,
-                      { backgroundColor: getCategoryColor(scenario.id) },
+                      { backgroundColor: getCategoryColor(scene.id) },
                     ]}
-                    onPress={() => handleScenarioPress(scenario.id)}
+                    onPress={() => handleScenePress(scene.id)}
                   >
                     <Ionicons name="play" size={16} color="white" />
                     <Text style={styles.startButtonText}>開始</Text>
@@ -240,11 +247,11 @@ export default function ScenesScreen({ navigation }: any) {
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={48} color="#64748b" />
-              <Text style={styles.emptyStateTitle}>シナリオが見つかりません</Text>
+              <Text style={styles.emptyStateTitle}>シーンが見つかりません</Text>
               <Text style={styles.emptyStateText}>
                 {selectedCategory 
-                  ? `選択したカテゴリ「${categories.find(c => c.id === selectedCategory)?.label}」に該当するシナリオがありません。`
-                  : 'シナリオが登録されていません。'
+                  ? `選択したカテゴリ「${categories.find(c => c.id === selectedCategory)?.label}」に該当するシーンがありません。`
+                  : 'シーンが登録されていません。'
                 }
               </Text>
             </View>
@@ -257,8 +264,8 @@ export default function ScenesScreen({ navigation }: any) {
             <Ionicons name="bulb-outline" size={20} color="#F59E0B" />
             <Text style={styles.hintTitle}>練習のコツ</Text>
             <Text style={styles.hintText}>
-              基本シナリオから始めて、徐々に難易度を上げていくことをお勧めします。
-              各シナリオは複数回練習することで、より良い結果が得られます。
+              基本シーンから始めて、徐々に難易度を上げていくことをお勧めします。
+              各シーンは複数回練習することで、より良い結果が得られます。
             </Text>
           </View>
         </View>
