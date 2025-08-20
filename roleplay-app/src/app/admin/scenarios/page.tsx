@@ -258,6 +258,11 @@ export default function AdminScenesPage() {
     return evaluationCriteria.filter(c => c.scene_id === sceneId)
   }
 
+  const handleViewDetails = (scene: Scene) => {
+    // Implement navigation or modal for details
+    alert(`詳細を表示: ${scene.title} (ID: ${scene.id})`)
+  }
+
   return (
     <div className="min-h-screen bg-[#0E1117]">
       <div className="w-full px-8 py-12">
@@ -475,6 +480,14 @@ export default function AdminScenesPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handleViewDetails(scene)}
+                        className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 rounded-xl"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEdit(scene)}
                         className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 rounded-xl"
                       >
@@ -484,7 +497,7 @@ export default function AdminScenesPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(scene.id)}
-                        className="border-[#374151] text-slate-300 hover:bg-[#1F2937] hover:text-slate-50 rounded-xl"
+                        className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white rounded-xl"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
